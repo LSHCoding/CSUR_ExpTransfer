@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# LaTeX
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.bbl
+*.blg
+
+# Ignore local data
+AgentData/
