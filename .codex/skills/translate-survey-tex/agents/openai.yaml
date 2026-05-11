@@ -1,0 +1,4 @@
+interface:
+  display_name: "Translate Survey TeX"
+  short_description: "Chinese draft to polished CSUR TeX"
+  default_prompt: "Use $translate-survey-tex to translate the specified Chinese Markdown draft into faithful polished English LaTeX and insert it into the specified .tex file."

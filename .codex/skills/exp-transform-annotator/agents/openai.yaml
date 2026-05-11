@@ -1,0 +1,7 @@
+interface:
+  display_name: "Experience Transformation Annotator"
+  short_description: "Annotate survey papers by scope, carrier, and pathway"
+  default_prompt: "Use $exp-transform-annotator to annotate a Title/URL/Abstract markdown paper list for the Experience Transformation survey."
+
+policy:
+  allow_implicit_invocation: true

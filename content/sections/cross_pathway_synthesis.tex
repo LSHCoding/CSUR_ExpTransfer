@@ -1,0 +1,103 @@
+\section{Pathway-Level Analysis}
+\label{sec:cross_pathway}
+
+The single-pathway analyses of Sections~\ref{sec:symbolic_internal}--\ref{sec:parametric_centered} and the composition-pattern analyses of \S\ref{sec:composite} treat each pathway and each pattern as a descriptive unit. This section asks a different question: what does the full catalog reveal once the units are read together rather than one at a time? Three views are applied in turn, and none reduces to either of the others. The first places all pathways and patterns into shared coordinates and identifies trade-off positions that are invisible from any single chapter (\S\ref{sec:cross_pathway:trade_off}). The second extracts cross-pattern structural rules from the composition catalog and uses them to distinguish empty cells that are mechanism-blocked from those that are merely under-explored (\S\ref{sec:cross_pathway:grammar}). The third inverts the analysis from supply to demand: given a deployment scenario, which pathway should be chosen, and why (\S\ref{sec:cross_pathway:utilization})?
+
+\subsection{Pathway and Pattern Trade-off Comparison}
+\label{sec:cross_pathway:trade_off}
+
+A comprehensive multi-dimensional comparison table is infeasible at the current stage of the literature, since for most pathway--axis pairs no consistent quantitative measurement is available. This subsection therefore presents three two-dimensional comparisons, each chosen because the literature supports cross-pathway comparability along the chosen axes and because the resulting placement surfaces a finding that is invisible from any single-pathway chapter. Every position carries an evidence-grade label---quantitatively reported, mechanism-inferred, or structural gradient---and the question of full quantitative cross-pathway benchmarks is registered as an open problem in \S\ref{sec:open_problems}.
+
+\subsubsection{Editability and Persistence}
+\label{sec:cross_pathway:trade_off:editability_persistence}
+
+The first comparison plots editability against persistence. Both axes are structural gradients that follow directly from the carrier spectrum: N-Tok occupies the editable-and-persistent corner; session-scoped Latent sits at the ephemeral-and-uneditable corner; and $\pi$-Par and V-Par together occupy the persistent-but-inaccessible-to-per-record-edit corner. Two observations follow from this placement. The editable-but-non-persistent cell is empty by construction, since an editable record can always be saved. Among parametric carriers, $\pi$-Par appears only as a terminal carrier, while V-Par appears as a terminal but is also the only parametric carrier that drives a further transformation through P6. Read together, the plane provides the simplest visualization of why P7 is structurally important and structurally hard: it represents a rightward-then-leftward move along the carrier spectrum for which no general-purpose mechanism currently exists.
+
+\subsubsection{Compute Cost and Generalization Gain}
+\label{sec:cross_pathway:trade_off:compute_generalization}
+
+The second comparison plots compute cost against generalization gain. Quantitative anchors are available primarily from P4 and P5---AgentRM's 8.8-point gain, ToolRL's 17\% improvement, SkillRL's 15.3\%---while P1, P2, and P3 positions are mechanism-inferred and pattern positions are aggregate-inferred. The low-compute corner is dominated by P1, which carries zero training cost and obtains its generalization gain through retrieval. The high-compute, high-generalization region is dominated by P5 and Extract-then-Train. The Self-Generation Loop occupies a distinctive high-compute, high-generalization position, because the loop's evolving distribution adapts to the policy's capability boundary in a way no static dataset can. Across the named compositions, several patterns occupy more favorable positions than their constituent single pathways on the axes considered here: Extract-then-Train improves over direct P5 in noisy-trajectory regimes, and Evaluate-then-Optimize improves over pure outcome-RL on long-horizon tasks.
+
+One placement on this plane runs against expectation. P3 appears weak on the compute--generalization plane even though it carries P5-level training cost, because its principal gain is concentrated in inference efficiency rather than in generalization. On a different axis pair, such as compute cost versus inference cost, the same pathway would occupy a stronger position. The general lesson is that trade-off conclusions are axis-dependent and no pathway is universally optimal.
+
+\subsubsection{Interpretability and Decision Quality}
+\label{sec:cross_pathway:trade_off:interpretability_decision}
+
+The third comparison plots interpretability against decision quality. Across the carrier spectrum, the literature suggests a broad anti-correlation: carriers that buy stronger decision improvement tend to make the contributing experience harder to inspect. Composition patterns improve the observed trade-off surface beyond the single-pathway catalog: Extract-then-Train reaches parametric-class decision quality while keeping its tokenized intermediate inspectable, and Self-Generation Loop achieves the highest open-ended decision quality at the cost of the largest interpretability loss. Read across the three planes, the pattern catalog occupies stronger trade-off positions than the single-pathway catalog, which supports treating \S\ref{sec:composite} as an independent chapter rather than as a postscript to single-pathway analysis.
+
+\subsubsection{Modality--Pathway Affinity}
+\label{sec:cross_pathway:trade_off:affinity}
+
+Aggregating multimodal observations from \S\ref{sec:symbolic_internal}--\S\ref{sec:composite} surfaces three cross-pathway affinities. GUI experience is over-represented in P5 and P7 because its discrete action space aligns naturally with policy training and synthetic data generation. Embodied continuous-control experience concentrates in P5 and is structurally barred from P2, since continuous signals resist clean discrete schema mapping. Cross-modal token-level abstraction---visual input reduced to text---is unique to P1, and no other pathway can substitute this capability.
+
+\subsubsection{Information-Loss Gradient}
+\label{sec:cross_pathway:trade_off:information_loss}
+
+An auxiliary thread connects the three preceding planes. P1 and P2 retain an externally inspectable tokenized record of the source experience, although abstraction and formalization can still omit details. P3 selectively retains information, since its compression preserves what is useful to the learned objective and loses the directly inspectable surface form. P4 and P5 fixate judgment or capability, encoding information into the coefficients of a score function or an action distribution. P7 attempts a reverse recovery, with a structural reconstruction loss that no automatic engine compensates for. Editability, compute, and interpretability all co-vary with this gradient because they are different consequences of the same carrier-class shift.
+
+\subsection{Compositional Grammar}
+\label{sec:cross_pathway:grammar}
+
+The composition-pattern analyses of \S\ref{sec:composite} described how each pattern works in isolation. This subsection asks a different question: read across the catalog, are there structural rules that constrain the space of possible compositions? Four candidate rules are advanced below, each paired with a mechanism-level reason and an analysis of the conditions under which it might fail.
+
+\paragraph{Rule 1: Tokenized carriers as a universal intermediate medium.}
+Across all named patterns, tokenized carriers occupy at least one position---source, intermediate, or terminal. Even Self-Generation Loop, which contains no explicit tokenized intermediate carrier, transfers its in-loop experience through tokenized form, since the trajectory text is what is generated, filtered, and consumed as supervision. The rule, then, is that no named pattern operates without tokenized carriers as the medium of inter-step information exchange. The mechanism reason is that tokenized carriers are the only carrier class that combines external-storage portability with direct interpretability. The natural candidate counterexample, Compress-then-Specialize, contains a latent explicit intermediate, but its source experience is tokenized, so the rule holds in weak form. Strong-form counterexamples in which tokenized carriers appear nowhere in the chain are absent from the current literature, and this absence is itself predictive content.
+
+\paragraph{Rule 2: Latent carriers as terminal only in the single-pathway view.}
+In the single-pathway view, latent carriers can serve as the terminal of P3, as exemplified by MemGen, LatentMem, and CLaRa. In the composition view, however, latent carriers appear almost exclusively as intermediate carriers feeding downstream parametric training. The reason is structural: latent differentiability is most useful when downstream training can backpropagate through it, and a composition that terminates at the latent layer leaves this advantage uncashed. P3 works that terminate at latent consume the carrier through inference-time attention---a structurally complete reuse mode that requires no further composition. No clean strong counterexample currently exists; LatentEvolve's parametric refiner is downstream of latent rather than a composition that terminates at latent.
+
+\paragraph{Rule 3: Parametric carriers as the most common single-step terminal but the least common lifecycle terminal.}
+In the single-step view, parametric carriers occupy the terminal position in five of the seven pathways. In the lifecycle view, however, P7 reverse-externalizes parametric content and Self-Generation Loop re-circulates it, so feedback paths back out of the parametric layer exist. The single-step terminal status follows from training mechanics, since compressing experience into weights is a well-developed operation while decompressing them is not; the lifecycle re-circulation follows from system needs, since long-running deployment demands adaptation without full retraining. The strongest counterexample to the lifecycle clause is single-shot SFT with no ongoing updates, which simply defines the rule's domain of validity to be systems with ongoing experience flow.
+
+\paragraph{Rule 4: Evaluator carriers compose unidirectionally toward Policy.}
+Evaluator carriers participate in compositions in essentially one direction: Tokenized $\to$ Evaluator $\to$ Policy. The reverse directions---Evaluator $\to$ Tokenized and Evaluator $\to$ Latent---are sparse to absent. The reason is that the evaluator's scoring affordance is naturally consumed by policy optimization, while compositions in other directions would require decoding mechanisms that the literature has not yet developed. Agentic Rubrics, a P7 instance that produces tokenized rubrics from a V-Par-shaped agent, is the most relevant emerging counterexample, but a single instance within P7 does not yet challenge the rule at the composition-pattern level. The rule's empirical content is its prediction that compositions which use evaluators as intermediate carriers but produce non-policy targets are under-explored rather than mechanism-blocked.
+
+\paragraph{Grammar as design guidance.}
+\label{sec:cross_pathway:grammar:design}
+The four rules taken together distinguish two qualitatively different kinds of empty cells in the composition catalog. \emph{Mechanism-blocked} cells---compositions with no tokenized carrier in any position, or compositions in which latent serves as the terminal carrier of the chain---are structurally inaccessible. \emph{Under-explored} cells---Evaluator $\to$ Tokenized compositions and Evaluator $\to$ Latent compositions---are mechanism-feasible but currently sparse, and are therefore prime candidates for new patterns. This distinction is what feeds the open-problems agenda of \S\ref{sec:open_problems}: research effort directed at mechanism-blocked cells is unlikely to be productive, while research effort directed at under-explored cells has structural reason to be.
+
+\subsection{Utilization-Driven Pathway Selection}
+\label{sec:cross_pathway:utilization}
+
+The two preceding subsections analyzed the pathway literature on the supply side, asking what each pathway and each composition produces and at what cost. This subsection inverts the analysis to the demand side: given a deployment scenario, which pathway or composition pattern should be chosen, and why? The bridge between scenario and pathway is a utilization-mode taxonomy, induced from the approximately 150 papers covered in this survey by classifying each work according to how the produced carrier is consumed at decision time.
+
+\subsubsection{Utilization Mode Taxonomy}
+\label{sec:cross_pathway:utilization:modes}
+
+The induction yields six utilization modes that together partition the literature with high coverage. \emph{Retrieve-and-Prepend} retrieves a stored narrative-tokenized artifact and prepends it into the current prompt, where it is consumed through language understanding (P1, and P7 outputs that are raw trajectories). \emph{Retrieve-and-Execute} retrieves a workflow or executable schematic-tokenized artifact and runs it through an execution engine (the workflow and code groups of P2, and P7 outputs that are executable workflows). \emph{Retrieve-and-Traverse} retrieves a graph-structured schematic-tokenized artifact and traverses the relevant subgraph at decision time (the graph group of P2). \emph{Attend-via-Latent} attends a continuous latent representation directly within the model's hidden-state computation, bypassing tokenization (P3). \emph{Forward-and-Generate} forwards the current context through a policy whose weights encode the experience and emits the next action (P5). \emph{Score-and-Select/Train} runs an evaluator forward pass over candidate outputs and either selects among them at inference time or supplies a gradient signal for further training (P4 and the evaluator step of P6, with P7 outputs that function as verifiers also occupying this slot).
+
+Two structural properties of the partition are most relevant for the demand-side analysis that follows. First, the mapping from carrier subclass to utilization mode is not one-to-one: schematic-tokenized carriers support both Retrieve-and-Execute and Retrieve-and-Traverse, and Score-and-Select/Train accepts both trained V-Par and rule-based evaluators. Second, within the tokenized class the degree of formalization is the structural predictor of the downstream utilization branch: narrative carriers commit to Retrieve-and-Prepend, while schematic carriers split into Retrieve-and-Execute when execution has side effects and Retrieve-and-Traverse when the operation is query-only.
+
+\subsubsection{Scenario Characterization}
+\label{sec:cross_pathway:utilization:scenarios}
+
+Six scenario dimensions partition the deployment decision space. They are task complexity (short versus long horizon), experience accumulation rate (sparse versus dense), inference latency budget (real-time versus batch), interpretability requirement (high versus low), experience update frequency (static versus evolving), and experience source (self-generated versus human-supplied versus teacher-model-synthesized). The dimensions are not independent in practice, but each carries distinguishable extremes that drive different pathway recommendations.
+
+\subsubsection{Selection Logic}
+\label{sec:cross_pathway:utilization:decision}
+
+Mapping scenario extremes onto the catalog of \S\ref{sec:symbolic_internal}--\S\ref{sec:composite} yields three backbone recommendations. High-interpretability, sparse-experience scenarios call for P1 or P2, since tokenized carriers preserve auditability and incur no training cost. Low-interpretability, high-throughput scenarios call for P5 in combination with Self-Generation Loop, since internalization removes per-call retrieval cost and the loop adapts to a moving distribution. Long-horizon scenarios that demand step-level credit assignment call for Evaluate-then-Optimize, since this is the only pattern in the catalog that supplies per-step gradient signal at scale.
+
+\subsubsection{Case Studies}
+\label{sec:cross_pathway:utilization:cases}
+
+This selection logic can be illustrated against three representative deployment archetypes drawn directly from the literature.
+
+\paragraph{GUI agents.}
+A GUI agent operates under high task volume and multimodal input, and the recommended pathway is P5 combined with Self-Generation Loop. UI-TARS-2's data flywheel, MobileGUI-RL's trajectory-aware GRPO, and MAI-UI's online RL all instantiate this prescription. The interpretability deficit characteristic of pure parametric internalization is partially addressed in this domain by P7-style synthetic data inspection, as in OS-Genesis. Deployments that deviate toward pure SFT without the loop tend to do so under prohibitive loop compute cost rather than against the structural recommendation.
+
+\paragraph{Embodied vision-language-action agents.}
+Embodied VLA deployment combines sparse experience, long horizons, and safety-critical operation. Pure P5 is sample-inefficient under these conditions, and pure parametric internalization without intermediates is ruled out for safety reasons. The recommendation is Extract-then-Train with reflection-style intermediates, instantiated by Learning from Trials and Errors' dual reflection modes and EVOLVE-VLA's learned progress estimator. Pure Self-Generation Loop is rare in this domain because loop compute interacts poorly with the per-rollout cost of physical interaction.
+
+\paragraph{Coding agents.}
+Coding deployments offer verifiable outcomes alongside high task complexity. Verifiability supports either rule-based reward in pure P5 or PRM training in Evaluate-then-Optimize, and the long horizons typical of code synthesis favor process-level evaluation. The recommendation is Evaluate-then-Optimize with a PRM, supplemented by P7-style synthetic data, and the reference instances are SWEET-RL, ReST-MCTS, BugPilot, and Agentic Rubrics.
+
+\subsubsection{Selection Limits}
+\label{sec:cross_pathway:utilization:limitations}
+
+The selection logic is a structural recommendation aid and not a substitute for empirical benchmarking. The scenario dimensions interact non-trivially in practice, so the recommendations should be read as starting points for design rather than as algorithmic outputs. Uniform cross-pathway benchmarks remain absent from the literature, and whether such benchmarks should be developed is a question outside this survey's scope but central to the open-problems agenda of \S\ref{sec:open_problems}.
+
+\subsection{Synthesis}
+\label{sec:cross_pathway:closing}
+
+The three subsections above read the same catalog through three views: the trade-off comparison identified axis-dependent strengths and counterintuitive positions; the compositional grammar extracted cross-pattern structural rules and used them to distinguish blocked from under-explored cells; and the utilization-driven selection logic inverted the analysis to scenario-driven recommendations. Together they connect the descriptive analyses of \S\ref{sec:symbolic_internal}--\S\ref{sec:composite} to the open-problems agenda of \S\ref{sec:open_problems}: sparse trade-off evidence, under-explored composition cells, and scenarios without clean pathway recommendations each point to a distinct class of future work.

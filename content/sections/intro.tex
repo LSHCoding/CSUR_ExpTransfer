@@ -1,0 +1,43 @@
+\section{Introduction}
+\label{sec:intro}
+
+An LLM-based agent operates within a continuous experience loop: it perceives a decision context, produces an action---from chain-of-thought reasoning to tool invocation to motor command---and observes the environment's response.
+This accumulated decision evidence, which we term \emph{agent experience}, initially takes the form of raw logs: verbatim records of context, action, and outcome, typically in the interleaved reasoning-and-acting format that ReAct~\cite{react} established as a standard.
+Raw logs are directly reusable through in-context retrieval, but the literature has identified persistent structural bottlenecks: they compete for context-window space, retrieval matches on surface form rather than on transferable structure, and no trainable signal emerges to shape the policy itself.
+Between 2024 and 2026, a methodologically related set of works crystallized in response: LLM-based agents repeatedly re-process their own interaction experience into a qualitatively different, more reusable representation---verbal reflections, structured APIs, reward models, policy weights---that downstream decisions can consume.
+These works span prompt engineering, code generation, reward modeling, and reinforcement learning, yet share one underlying operation: experience is moved from one storage form to another, trading one set of properties for another.
+What the literature lacks is a single coordinate system in which the costs and gains of these heterogeneous works can be placed side by side and compared.
+
+The form in which experience is stored at reuse time---its \emph{carrier}---determines how it can be accessed, what it costs, and what can be done with it.
+We distinguish three top-level carrier classes by where experience resides in the model architecture.
+\textbf{Tokenized} carriers store experience as externally provided, context-addressable token sequences that explicitly enter the model's forward pass: text tokens, code tokens, visual patch tokens, action tokens, and serialized structural tokens. Narrative forms (reflections, summaries, skill descriptions) are weakly formalized and consumed through language or multimodal understanding by prepending to the context window; schematic forms (code, workflows, graphs, APIs) are strongly formalized and consumed through parsing, execution, or graph traversal.
+\textbf{Latent} carriers compress experience into continuous vectors or hidden states that participate directly in attention computation, bypassing tokenization and its per-token cost at the price of opacity---the experience can be attended to but is difficult to inspect or edit.
+\textbf{Parametric} carriers encode experience into network weights---policy parameters ($\pi$-Par) that generate actions, or evaluator parameters (V-Par) that return judgment signals such as reward models, verifiers, and critics---accessed through a single forward pass with zero retrieval cost and zero context budget, but expensive to update and prone to catastrophic forgetting.
+These three classes form a continuous spectrum (Tokenized $\to$ Latent $\to$ Parametric): interpretability and editability decrease; inference efficiency increases; storage shifts from external databases through GPU memory to model checkpoints, and reuse moves from token-level access to latent-state-level access to parameter-level access.
+An agent system can move between these positions in either direction, and each such move---an \emph{Experience Transformation}---is the central object of this survey.
+
+This survey takes \emph{Experience Carrier Transformation} as its primary taxonomic primitive.
+The semantic record of an agent's interaction is formalized as a modality-agnostic tuple $e = (c, a, o, f)$---context before the decision, action taken, observation returned by the environment, and optional evaluative feedback.
+The analytical units are seven atomic pathways connecting these carrier classes.
+Two are intra-Tokenized: P1 abstracts raw narrative experience into more compact, transferable narrative artifacts ($\text{N-Tok}(\text{raw}) \to \text{N-Tok}(\text{refined})$); P2 formalizes narrative experience into schematic structures whose reuse goes through parsing, execution, or graph traversal ($\text{N-Tok} \to \text{S-Tok}$).
+P3 compresses tokenized experience into continuous latent vectors ($\text{Tokenized} \to \text{Latent}$).
+Three terminate in the parametric layer: P4 distills trajectories into evaluator parameters that return verdicts ($\text{Tokenized} \to \text{V-Par}$); P5 internalizes trajectories into policy parameters that generate actions ($\text{Tokenized} \to \pi\text{-Par}$); P6 channels evaluator signals into further policy weight updates ($\text{V-Par} \to \pi\text{-Par}$).
+P7 reverse-externalizes parametric knowledge back into tokenized artifacts ($\text{Parametric} \to \text{Tokenized}$).
+Modality, abstraction level, and experience source are treated as orthogonal attribute tags on each carrier instance rather than as parallel taxonomic dimensions, so that multimodal works are woven into the analysis of every pathway instead of being siloed into a separate chapter.
+
+Three converging trends make experience transformation a structurally distinct problem as of 2024--2026: the shift from single-shot LLM prompting to long-horizon agents that accumulate large volumes of heterogeneous trajectories; the growing reliance on test-time search, which multiplies the experience that must be filtered and distilled rather than stored verbatim; and the rapid expansion of learning-from-feedback pipelines---especially process reward models---that turn trajectories into reusable training signals, tightening the coupling between experience logs and downstream optimization.
+
+Existing surveys organize the agent-learning literature along four taxonomic axes---functional module, learning method, which component evolves over time, and application domain---each of which has internal descriptive value but none of which takes \emph{the form in which experience persists} as its decision surface.
+The structural consequence is that methodologically close works are split across categories, heterogeneous works are conflated, and multi-stage pipelines whose core contribution is the integration mechanism are dismantled across separate chapters.
+The self-evolving agent surveys of Gao~et~al.~\cite{gao_selfevolving_survey} and Fang~et~al.~\cite{fang_selfevolving} are the most adjacent in coverage, with substantial literature overlap, but differ in axis: they ask \emph{which architectural component evolves}, while this survey asks \emph{in what form experience flows from which carrier into which carrier}.
+The two perspectives are complementary rather than substitutive.
+
+Taking carriers and pathways as primitives makes composite pipelines first-class analytical objects: multi-stage pipelines are no longer split across chapters but receive a dedicated analysis with their integration mechanism examined at full resolution (Section~\ref{sec:composite}).
+On top of the single-pathway and composite-pipeline analyses, Section~\ref{sec:cross_pathway} performs three cross-cutting syntheses that no existing taxonomic axis can express---cross-pathway trade-off comparison, compositional grammar of how pathways compose, and a utilization-driven selection procedure that maps deployment scenarios to pathway recommendations---and Section~\ref{sec:open_problems} closes with falsifiable open problems.
+
+The remainder of the paper proceeds from foundations through single pathways and composite pipelines to synthesis and open problems.
+Section~\ref{sec:taxonomy} defines carriers, transformations, and the unified notation.
+Sections~\ref{sec:symbolic_internal} through~\ref{sec:parametric_centered} group the seven atomic pathways by their source carrier into four chapters and examine each pathway through mechanism, cost--benefit structure, failure pathology, and multimodal realization.
+Section~\ref{sec:composite} treats multi-pathway composition as a first-class analytical object, adding integration mechanisms that have no single-pathway counterpart.
+Section~\ref{sec:cross_pathway} performs cross-pathway and cross-pattern synthesis---trade-off structure, compositional grammar, and utilization-driven selection.
+Section~\ref{sec:open_problems} closes with falsifiable open problems.
