@@ -2,7 +2,7 @@
 
 §3–§6 讨论的 7 条单路径刻画了经验在单一载体对之间的一次转化。LLM-based Agent 文献中还存在一类更复杂的方法：它们把多个 transformation steps 组织成链式或闭环式 pipeline，经验在 Narrative Tokenized、Schematic Tokenized、Policy 参数与 Evaluator 参数之间连续流动，而相邻步骤之间的衔接机制（integration mechanism）本身构成方法的主要贡献。
 
-判定一项工作是否属于 Composite，关键不在于它是否包含多个操作步骤，而在于这些步骤之间是否存在实质性的衔接机制。一篇论文若先生成 agent trajectories、再用它们训练 policy，中间只是常规数据收集与常规 fine-tuning，更适合归入单步 P5；只有当论文的核心贡献落在如何筛选、修复、校准、重标、验证或闭环调度这些中间经验、使其能被下游 policy 或 evaluator 有效消费时，才归入 Composite。
+判定一项工作是否属于 Composite，关键不在于它是否包含多个操作步骤，而在于这些步骤之间是否存在实质性的衔接机制。一篇论文若先生成 agent trajectories、再用它们训练 policy，中间只是常规数据收集与常规 fine-tuning，更适合归入单步 Policy Internalization；只有当论文的核心贡献落在如何筛选、修复、校准、重标、验证或闭环调度这些中间经验、使其能被下游 policy 或 evaluator 有效消费时，才归入 Composite。
 
 本章将 Composite Pipelines 划分为三类，分界依据一条统一的判据轴——衔接机制作用在哪个载体结点上：
 
@@ -36,7 +36,7 @@ Evaluator–Policy Co-Evolution 指 Evaluator 参数与 Policy 参数围绕 Agen
 
 Refinement-Mediated Policy Internalization 指先把原始 agent experience 转化为更可学习的 refined artifact、再将其内化进 Policy 参数的复合路径，典型结构是 Narrative Tokenized → Narrative/Schematic Tokenized → Policy 参数。源经验通常是 raw trajectory、failure episode、reasoning trace、tool-use log、GUI interaction trace 或 embodied execution record。
 
-判据是衔接机制作用于单条经验的内容——对个别轨迹做反思、修复、校准、净化、补写或抽象，重新解释其作为监督信号的内容。关键假设是 Agent 的历史经验并不天然等价于可学习监督：失败轨迹中可能含有正确前缀与局部有效动作，成功轨迹中也可能含有冗余动作或不可迁移的 shortcut。与单步 P1 的区别在于 refined artifact 会进入训练而非停留在 inference-time context；与直接 P5 的区别在于它否定"raw trajectory 本身即可靠监督"这一假设，要求经验在写入参数之前先被改写。与 §7.3 的分界在于操作对象——本节改写单条经验的内部内容，§7.3 构造经验集合的分布。
+判据是衔接机制作用于单条经验的内容——对个别轨迹做反思、修复、校准、净化、补写或抽象，重新解释其作为监督信号的内容。关键假设是 Agent 的历史经验并不天然等价于可学习监督：失败轨迹中可能含有正确前缀与局部有效动作，成功轨迹中也可能含有冗余动作或不可迁移的 shortcut。与单步 Narrative Abstraction 的区别在于 refined artifact 会进入训练而非停留在 inference-time context；与直接 Policy Internalization 的区别在于它否定"raw trajectory 本身即可靠监督"这一假设，要求经验在写入参数之前先被改写。与 §7.3 的分界在于操作对象——本节改写单条经验的内部内容，§7.3 构造经验集合的分布。
 
 **失败经验的反思、修复与重写。** <!-- TODO: 补充方法名缩写 --> [Ge26] 把失败 rollout 提炼为 rollback target 与 reflective summary，据此生成修正分支，通过 counterfactual distillation 使模型在不显式依赖反思文本的条件下复现修正决策，把外显的 reflective agency 内化为参数能力。Agent-R [Yua25c] 从 MCTS 生成的 good 与 bad trajectories 中构造带 reflection signal 的 revision trajectory，使模型学会在识别到首个关键错误后及时切换到修正路径。STeCa [Wan25x] 把修复粒度细化到步骤层面：定位第一个偏离 expert path 的动作，生成含 reflective thought 与 corrected action 的 calibrated trajectory 替换原始偏离片段。CLEANER [Xu26j] 针对工具调用与代码执行中的噪声污染，用 similarity-aware adaptive rollback 把含错误上下文的轨迹纯化为 self-purified trajectories。AgentHER [Din26] 不丢弃失败轨迹，而是从中提取其实际达成的 outcome、逆向生成 hindsight goal，把失败运行重写为与真实效果一致的成功 demonstration。
 

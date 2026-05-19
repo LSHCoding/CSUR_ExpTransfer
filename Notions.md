@@ -98,3 +98,22 @@
 | `RAG`  | Retrieval-Augmented Generation             | 检索增强生成                             |
 
 
+---
+
+## 5. Pathway Functional Names（路径功能描述名）
+
+正文中 P1–P7 以功能描述名为主引用形式，首次出现绑定全称定义，后续直接使用功能描述名。
+
+
+| 路径  | 功能描述名    | 英文名                           | 载体转化                   | 一句话定义                                        |
+| --- | -------- | ----------------------------- | ---------------------- | -------------------------------------------- |
+| P1  | 叙事抽象路径   | Narrative Abstraction         | Narrative → Narrative  | 将原始叙事经验提炼为更高层的自然语言洞察、规则或反思                   |
+| P2  | 图式形式化路径  | Schematic Formalization       | Narrative → Schematic  | 将叙事经验转化为可解析、可执行或可遍历的结构化 artifact             |
+| P3  | 隐空间转化路径  | Latent-Space Transformation   | Tokenized → Latent     | 将离散 tokenized 经验转化为可直接参与 attention 计算的连续表示   |
+| P4  | 评估器内化路径  | Evaluator Internalization     | Tokenized → Evaluator  | 将交互经验固化为参数化评估器的判断能力                          |
+| P5  | 策略内化路径   | Policy Internalization        | Tokenized → Policy     | 将交互经验固化为参数化策略的决策能力                           |
+| P6  | 评估驱动优化路径 | Evaluator-Driven Optimization | Evaluator → Policy     | 将已内化的评估器能力转化为驱动策略更新的监督信号                     |
+| P7  | 参数外化路径   | Parametric Externalization    | Parametric → Tokenized | 将参数化模型中已内化的经验外化为可被其他系统消费的 tokenized artifact |
+
+
+**使用约定：** 首次定义处绑定全称，后续正文一律使用功能描述名（功能性描述只适用英文名，即使是在中文的版本中）。

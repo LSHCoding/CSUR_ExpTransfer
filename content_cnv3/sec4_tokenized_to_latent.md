@@ -1,12 +1,12 @@
-# 4. Tokenized-to-Latent Transformations (P3)
+# 4. Tokenized-to-Latent Transformations (Latent-Space Transformation)
 
-P3 将 Tokenized Agent Experience 转化为可被模型直接消费的连续表示——KV cache、hidden states、soft prompt、prefix vectors、memory token embeddings、latent memory bank 或 cross-attention memory output。这里的目标载体不再是离散 token，而是可直接参与 attention、hidden-state computation 或 action prediction 的内部计算状态。经验在复用时不再回到自然语言或其他离散 token 形式，而是以 model-native state 的形式被再次调用。
+Latent-Space Transformation 将 Tokenized Agent Experience 转化为可被模型直接消费的连续表示——KV cache、hidden states、soft prompt、prefix vectors、memory token embeddings、latent memory bank 或 cross-attention memory output。这里的目标载体不再是离散 token，而是可直接参与 attention、hidden-state computation 或 action prediction 的内部计算状态。经验在复用时不再回到自然语言或其他离散 token 形式，而是以 model-native state 的形式被再次调用。
 
-P3 与常见 RAG-style memory 有本质区别：后者虽然也用 embedding 做索引，但最终被模型消费的通常是 retrieved text——embedding 只是检索机制，经验真正被复用的载体仍是 Tokenized 文本。P3 要求转化后的经验以 continuous representation 的形式直接进入 attention 或 hidden-state computation，不被解码回自然语言或其他离散 token 后再输入模型。
+Latent-Space Transformation 与常见 RAG-style memory 有本质区别：后者虽然也用 embedding 做索引，但最终被模型消费的通常是 retrieved text——embedding 只是检索机制，经验真正被复用的载体仍是 Tokenized 文本。Latent-Space Transformation 要求转化后的经验以 continuous representation 的形式直接进入 attention 或 hidden-state computation，不被解码回自然语言或其他离散 token 后再输入模型。
 
-P3 也不同于单纯的 inference efficiency optimization。许多 KV cache eviction、attention sparsification、cache quantization 或 serving-level cache reuse 方法同样操作 KV cache 或 hidden states，但其目标主要是降低显存占用、延迟或吞吐成本，并不一定具有跨 session、跨 task 或长程 episode 的经验复用语义。本文只将那些明确把历史交互转化为可复用 Latent artifact 的方法纳入 P3——Latent representation 必须承担经验存储与复用功能，而非仅是推理系统中的临时加速结构。
+Latent-Space Transformation 也不同于单纯的 inference efficiency optimization。许多 KV cache eviction、attention sparsification、cache quantization 或 serving-level cache reuse 方法同样操作 KV cache 或 hidden states，但其目标主要是降低显存占用、延迟或吞吐成本，并不一定具有跨 session、跨 task 或长程 episode 的经验复用语义。本文只将那些明确把历史交互转化为可复用 Latent artifact 的方法纳入 Latent-Space Transformation——Latent representation 必须承担经验存储与复用功能，而非仅是推理系统中的临时加速结构。
 
-P3 方法的差异集中在一点：可复用的 Latent 表示从何而来。沿"获得该表示所需投入的专用机制"这条轴划分为三类。Cache-Based Latent Transformation 不额外训练，直接复用历史 forward pass 产生的真实 KV/hidden states。Prompt-Based Latent Transformation 通过训练把经验压缩为静态的连续提示表示（soft prompt、prefix vectors、memory token embeddings），底座模型保持冻结。Module-Based Latent Transformation 通过训练构建带显式写入、读取、融合的动态 Latent memory 系统。三类沿"复用现成计算 → 训练静态 latent → 训练动态 latent 系统"递进，专用机制与表达能力递增，训练与工程成本同向上升。
+Latent-Space Transformation 方法的差异集中在一点：可复用的 Latent 表示从何而来。沿"获得该表示所需投入的专用机制"这条轴划分为三类。Cache-Based Latent Transformation 不额外训练，直接复用历史 forward pass 产生的真实 KV/hidden states。Prompt-Based Latent Transformation 通过训练把经验压缩为静态的连续提示表示（soft prompt、prefix vectors、memory token embeddings），底座模型保持冻结。Module-Based Latent Transformation 通过训练构建带显式写入、读取、融合的动态 Latent memory 系统。三类沿"复用现成计算 → 训练静态 latent → 训练动态 latent 系统"递进，专用机制与表达能力递增，训练与工程成本同向上升。
 
 ## 4.1 Cache-Based Latent Transformation
 
@@ -48,12 +48,12 @@ LatentMem [Fu26] 先从 experience bank 检索历史多智能体轨迹，再用 
 
 <!-- Hybrid Self-evolving Structured Memory for GUI Agents [Zhu26] 同时维护 Schematic Tokenized memory（high-level strategy/attribute tags）与 Latent memory（low-level trajectory embeddings），两类 memory 各自独立维护，其间不存在耦合二者的 integration mechanism，不作为 Composite Pipeline 处理，仅在此作为 Latent 与 Tokenized 并存的边界示意。 -->
 
-Module-Based 方法是 P3 中表达能力最强的方法形态，特别适合 long-horizon、multi-modal、embodied、GUI 和 multi-agent 场景。优势在于表达能力强、动态适应性好，能将 memory access 与当前决策紧密耦合。局限在于系统复杂度最高——需要额外的 memory module、cross-attention layer、compressor 或 gating mechanism，训练和部署成本较高；持续更新 Latent memory 会带来 staleness、capacity saturation、latent drift 和错误经验累积等问题。
+Module-Based 方法是 Latent-Space Transformation 中表达能力最强的方法形态，特别适合 long-horizon、multi-modal、embodied、GUI 和 multi-agent 场景。优势在于表达能力强、动态适应性好，能将 memory access 与当前决策紧密耦合。局限在于系统复杂度最高——需要额外的 memory module、cross-attention layer、compressor 或 gating mechanism，训练和部署成本较高；持续更新 Latent memory 会带来 staleness、capacity saturation、latent drift 和错误经验累积等问题。
 
 ## 4.4 Discussion
 
-P3 标志着 Agent memory 从"把过去写下来再读回来"转向"把过去编码进可直接参与计算的内部状态"。在这一过程中，经验的可读性、可编辑性与可解释性逐步下降，而推理效率、模型内耦合性与细粒度信息保留能力则相应上升。三类方法构成一个连续谱：Cache-Based 方法最接近对原始内部计算的直接复用，训练成本最低，但也最依赖具体 backbone；Prompt-Based 方法提供了较轻量、模块化的 Latent adaptation 形式，适合压缩稳定的 skill 或 reasoning prior；Module-Based 方法最接近系统级 Latent memory mechanism，能够支持长期、多模态、动态更新的经验组织，但同时也面临更高的建模与工程复杂度。
+Latent-Space Transformation 标志着 Agent memory 从"把过去写下来再读回来"转向"把过去编码进可直接参与计算的内部状态"。在这一过程中，经验的可读性、可编辑性与可解释性逐步下降，而推理效率、模型内耦合性与细粒度信息保留能力则相应上升。三类方法构成一个连续谱：Cache-Based 方法最接近对原始内部计算的直接复用，训练成本最低，但也最依赖具体 backbone；Prompt-Based 方法提供了较轻量、模块化的 Latent adaptation 形式，适合压缩稳定的 skill 或 reasoning prior；Module-Based 方法最接近系统级 Latent memory mechanism，能够支持长期、多模态、动态更新的经验组织，但同时也面临更高的建模与工程复杂度。
 
 三类方法在 verifiability 与 robustness 上也呈现明显梯度。Latent memory 一旦写入便难以被人直接检视或定点修正，经验是否正确、是否过时通常只能从下游行为间接推断。这种不可检视性在三类中程度递增：Cache-Based 复用单次推理的真实 KV，内容尚可追溯到具体历史片段；Prompt-Based 的静态向量经训练压缩后已无法对应单条经验；Module-Based 的动态 memory 持续写入更新，最难审计，并独有 staleness、capacity saturation、latent drift 与错误经验累积等失效模式——错误经验进入 latent memory 后既不易被发现，也无法像 text rule 那样被直接删改。
 
-<!-- P3 在整体框架中的位置：它处在 externalized reuse（通过 Tokenized carrier）与 fully parametric reuse（通过 Parametric carrier）之间。关键转变在于经验被复用时的形式，而非其存储位置——Cache-Based 的外部 KV memory 与 Module-Based 的 latent memory bank 在存储—检索结构上仍与 RAG 同构，经验依然存放在模型本体之外；区别在于检索出的经验以 continuous representation 直接进入 attention 或 hidden-state computation，不再经 tokenization 解码回离散 token。正是这种 attention-consumable 的消费形式，使 P3 成为通往 Parametric carrier 的过渡形态，也解释了为何它在具身、GUI 和多智能体等高度依赖 perceptual grounding 与动态经验整合的场景中日益重要。 -->
+<!-- Latent-Space Transformation 在整体框架中的位置：它处在 externalized reuse（通过 Tokenized carrier）与 fully parametric reuse（通过 Parametric carrier）之间。关键转变在于经验被复用时的形式，而非其存储位置——Cache-Based 的外部 KV memory 与 Module-Based 的 latent memory bank 在存储—检索结构上仍与 RAG 同构，经验依然存放在模型本体之外；区别在于检索出的经验以 continuous representation 直接进入 attention 或 hidden-state computation，不再经 tokenization 解码回离散 token。正是这种 attention-consumable 的消费形式，使 Latent-Space Transformation 成为通往 Parametric carrier 的过渡形态，也解释了为何它在具身、GUI 和多智能体等高度依赖 perceptual grounding 与动态经验整合的场景中日益重要。 -->

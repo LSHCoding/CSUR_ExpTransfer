@@ -10,12 +10,12 @@
 
 经验转化（Experience Transformation）定义为经验在不同载体之间的迁移过程 $\mathcal{T}: \mathcal{C}_{\text{src}} \rightarrow \mathcal{C}_{\text{tgt}}$，需同时满足两个条件：源端内容可追溯至 agent 经验记录（经验语义锚定），目标载体编码了源经验的语义内容（经验内容承载）。
 
-在此框架下，本文识别出 7 条基础转化路径（P1–P7），按源载体类型聚合为 4 组：
+在此框架下，本文识别出 7 条基础转化路径，按源载体类型聚合为 4 组：
 
-- **Tokenized 内部转化**（§3）：Narrative → Narrative（P1，同层语义抽象，如 raw logs → reflections/rules/insights），Narrative → Schematic（P2，同层形式化，如 logs → code/workflows/graphs）；
-- **Tokenized → Latent**（§4）：P3，将离散经验压缩为连续计算状态（如 trajectories → KV cache/soft prompts/continuous memory tokens）；
-- **Tokenized → Parametric**（§5）：Tokenized → Evaluator（P4，经验固化为评估能力，如 trajectories → RM/PRM），Tokenized → Policy（P5，经验固化为决策能力，如 trajectories → policy weights via SFT/RL）；
-- **Parametric 源端转化**（§6）：Evaluator → Policy（P6，偏好对齐，如 RM 信号 → policy weights via RLHF/DPO），Parametric → Tokenized（P7，隐式经验外化，如 weights → synthetic trajectories/demonstrations）。
+- **Tokenized 内部转化**（§3）：Narrative Abstraction 将原始叙事经验提炼为更高层的自然语言洞察、规则或反思（载体转化 Narrative → Narrative），Schematic Formalization 将叙事经验转化为可解析、可执行或可遍历的结构化 artifact（载体转化 Narrative → Schematic）；
+- **Tokenized → Latent**（§4）：Latent-Space Transformation 将离散 tokenized 经验转化为可直接参与 attention 计算的连续表示（载体转化 Tokenized → Latent）；
+- **Tokenized → Parametric**（§5）：Evaluator Internalization 将交互经验固化为参数化评估器的判断能力（载体转化 Tokenized → Evaluator），Policy Internalization 将交互经验固化为参数化策略的决策能力（载体转化 Tokenized → Policy）；
+- **Parametric 源端转化**（§6）：Evaluator-Driven Optimization 将已内化的评估器能力转化为驱动策略更新的监督信号（载体转化 Evaluator → Policy），Parametric Externalization 将参数化模型中已内化的经验外化为可被其他系统消费的 tokenized artifact（载体转化 Parametric → Tokenized）。
 
 除单路径外，本文还将复合路径（Composite Pipelines，§7）作为独立章节，识别那些将多路径链式或闭环式组合作为整体方法的工作，按衔接机制（integration mechanism）划分为 Evaluator–Policy Co-Evolution、Refinement-Mediated Policy Internalization 与 Generative Experience Curation 三类 pattern，并分析各自的 composition topology 与失效模式。跨路径综合（Cross-Pathway Synthesis，§8）对比各路径的 trade-off 画像、分析 utilization 驱动力并给出场景化推荐，开放问题与未来方向（§9）收束全文。
 
