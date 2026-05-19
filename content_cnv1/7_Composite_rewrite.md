@@ -1,0 +1,132 @@
+# §7 复合经验转化流水线（Composite Experience Transformation Pipelines）
+
+## §7.0 引言
+
+§3–§6 讨论的 7 条单路径刻画了经验在单一载体对之间的一次转化。LLM-based Agent 文献中还存在一类更复杂的方法：它们把多个 transformation steps 组织成链式或闭环式 pipeline，经验在 Narrative Tokenized、Schematic Tokenized、Policy 参数与 Evaluator 参数之间连续流动，而相邻步骤之间的衔接机制（integration mechanism）本身构成方法的主要贡献。
+
+判定一项工作是否属于 Composite，关键不在于它是否包含多个操作步骤，而在于这些步骤之间是否存在实质性的衔接机制。一篇论文若先生成 agent trajectories、再用它们训练 policy，中间只是常规数据收集与常规 fine-tuning，更适合归入单步 P5；只有当论文的核心贡献落在如何筛选、修复、校准、重标、验证或闭环调度这些中间经验、使其能被下游 policy 或 evaluator 有效消费时，才归入 Composite。
+
+本章将 Composite Pipelines 划分为三类。三类的分界依据一条统一的判据轴——**衔接机制作用在哪个载体结点上**：
+
+- **§7.1 Evaluator–Policy Co-Evolution**：衔接机制是一个 learned evaluator 与 policy 的*相互校准*。其判据是 evaluator 参数被刻意设计为随 evolving policy 持续刷新或重训，二者在同一闭环中互相塑造。标准 actor–critic 中 critic 的常规联合更新不构成此类衔接——只有当"评估器与策略的协同演化"本身是被贡献的设计要素时才纳入。
+- **§7.2 Refinement-Mediated Policy Internalization**：衔接机制作用于*单条经验的内容*。其判据是对个别 trajectory 做反思、修复、校准、净化、补写或抽象，改变其作为监督信号的内容，再将 refined artifact 内化进 Policy 参数。
+- **§7.3 Generative Experience Curation**：衔接机制作用于*经验集合的生成与分布*。其判据是通过探索、合成或搜索产生原本不存在的经验，并通过验证、筛选、选择构造其分布，再将经过筛炼的 experience set 用于 Policy 更新。
+
+§7.2 与 §7.3 的一句话分界：**§7.2 改写经验的内容，§7.3 构造经验的集合**。一项工作若同时含两种操作，按其 headline 贡献归位——STeCa 的核心是 step-level calibration（改写单条轨迹的偏离片段），归 §7.2；He25g 的核心是 step-level grading 后筛选哪些 step 贡献损失（不改写内容、只决定取舍），归 §7.3。
+
+与判据轴正交的是 **composition topology**：链式（chain，经验沿 Narrative → Schematic → Parametric 等方向单向流动）与闭环式（loop，下游产物回流上游、迭代多轮）。拓扑不作为分类主轴，而作为每条 pattern 的属性描述——§7.1 几乎全为闭环，§7.2 几乎全为链式，§7.3 二者兼有。
+
+两点 scope 边界需在此交代。其一，本章所有 composite 的中间与终端载体都落在 Tokenized 与 Parametric 上；以 Latent（KV cache、soft prompts、continuous memory tokens）为中间或终端载体的 composite pipeline，我们在文献中未找到典型代表，这既可能是真实空白，也可能反映该方向尚未成熟。其二，本章绝大多数工作以 Policy 参数内化为终点；以"更优的 Tokenized artifact 而不做参数更新"为终端的 composite 仅在 §7.2 的 Sar24b 等边界案例中部分出现，构成一个尚待填补的位置。
+
+与单路径相比，Composite 方法通常具有更强的经验利用能力——原始 agent trajectory 中混杂着成功策略、失败动作、局部正确步骤、环境反馈、错误恢复与噪声行为，Composite pipeline 通过多阶段转化把这些信号组织成更可靠的训练、评估或改进机制。代价是它更容易受到衔接误差、错误反馈累积、分布漂移与闭环坍缩的影响。本章在每一类的末尾给出该类的 integration mechanism 类型学与对应的 failure mode，§7.4 收束三类的整体评价标准。
+
+---
+
+## §7.1 Evaluator–Policy Co-Evolution
+
+### 定义与判据
+
+Evaluator–Policy Co-Evolution 指 Evaluator 参数与 Policy 参数围绕 Agent experience 相互校准、共同演化的复合路径。其抽象结构可写为经 Tokenized 中介的闭环：Policy 在环境中 rollout 产生新的行为分布与交互经验（Tokenized），这些经验被用于更新或校准 Evaluator 的评价能力；Evaluator 再通过 reward、critique、preference、verification 或 process feedback 反向塑造 Policy 更新。需要说明的是，Policy 与 Evaluator 之间并非直接的参数到参数转化——经验先以 trajectory 形式外化为 Tokenized 载体，再分别驱动两端的参数更新，闭环的真实结构带有一个 Tokenized waypoint。
+
+判据落在"evaluator–policy 的协同演化是否是被贡献的衔接机制"上。在 open-world、GUI 与 embodied 场景中，Policy 的行为随训练不断漂移，静态 Evaluator 很容易 stale：它可能识别不出新型失败模式，也可能对新策略产生错误评价；若仍用旧 Evaluator 监督新 Policy，Policy 可能过拟合 Evaluator 的偏差，甚至通过 reward hacking 获得高分而不真正提升能力。本节纳入的工作都把这一问题作为命名的设计目标，并给出了让 Evaluator 跟随 Policy 演化的具体机制。仅在标准 actor–critic 意义上联合更新 critic、而把贡献落在 critic *使用*策略上的工作（如 EVPO [Pan26]，其核心是依 explained variance 自适应 gating critic 的可用性）不属此类，更接近单路径 RL 的 critic 使用细节。
+
+### 代表性工作
+
+**核心组——双向刷新的评估器闭环。** UI-Genie [Xia25e] 把 GUI agent 与 reward model 放进多轮 self-improving loop：agent 的探索轨迹一方面被 reward-guided beam search 用于筛选高价值行为，另一方面失败轨迹经 continuation rollout 自动转化为新的 step-level supervision 来刷新 reward model；评估器精度的提升直接抬高后续轨迹筛选质量，更强的 agent 又产生更丰富的经验喂给下一轮 reward model。MagicGUI-RMS [Li26n] 构建 DS-RM 与 GP-RM 组成的分层评估系统，并以 automated feedback reflux 把策略与评估器放进同一闭环——GP-RM 认可的高质量动作回流为 agent supervision，DS-RM 与 GP-RM 的分歧样本回流为 evaluator 的增量训练数据。ECHO [Li26l] 直接把 critic staleness 列为 open-world agent learning 的核心障碍：policy 生成 on-policy trajectory，critic 给出多视角自然语言诊断，policy 据此做 conditional refinement，两者在"初始轨迹—诊断—修正轨迹"上做 dual-track GRPO 更新，并以 saturation-aware gain shaping 维持 critic 对高分区间细微改进的敏感性。
+
+**reasoning 与 embodied 场景的扩展。** RL Tango [Zha25y] 在推理设定中交替训练 generator 与 verifier，使 verifier 在 generator 当前推理轨迹分布上持续更新——verifier 只接收 outcome-level correctness reward，却学习产出 step-level verification feedback 来塑造 generator，而 generator 的新轨迹又不断暴露新的验证难点。RLAnything [Wan26u] 把 evaluator–policy 耦合扩展为"policy–reward–environment"三元闭环：reward model 由 evolving policy 的轨迹持续更新，其 step-wise feedback 与 outcome signal 一起反向驱动 policy，同时引入 theory-motivated environment adaptation 动态调节任务难度。
+
+**弱耦合形态。** VARP [Sin25b] 在 embodied RL 中通过 agent-regularized preferences 让 reward learning 显式依赖当前 policy 的 rollout 数据，使 reward model 随 policy 能力变化重估偏好边界。它的耦合强度弱于核心组——evaluator 不是被一个专门的 refresh 机制重训，而是经正则项与当前行为分布绑定——但评估能力确实随策略演化，归入本节作为耦合谱的弱端。
+
+**极限情形——内生化评估器。** Self-Guide [Wan26aj] 让同一个 language agent 每步先生成短 self-guidance，该信号同时作为 inference-time action steering 与 training-time internal reward。这里 evaluator 被内生进 policy 自身，不存在独立的第二个 Parametric 载体，闭环结构 $\mathcal{C}^P_\pi\leftrightarrow\mathcal{C}^P_\phi$ 退化为单一载体上的 self-rewarding 回路。其 co-evolution 逻辑仍然成立（更强 policy 产出更可靠 guidance，更密集的 guidance 又改进 policy），因此保留在本节，但作为评估器与策略共享参数的极限案例标注，提醒读者标准的双载体框架在此不适用。
+
+### Integration Mechanism 类型学与失效模式
+
+| 衔接机制 | 作用 | 代表工作 |
+|---|---|---|
+| Alternating update | generator/policy 与 verifier/evaluator 交替优化 | RL Tango |
+| Feedback reflux | 高质量动作回流为 supervision，分歧样本回流为再训练数据 | MagicGUI-RMS |
+| Continuation rollout / hard negative mining | 从失败轨迹挖掘潜在正确步骤刷新评估器 | UI-Genie |
+| Critic refresh + dual-track optimization | critic 随 policy 同步更新，两者在同批经验上联合优化 | ECHO |
+| Policy-conditioned evaluator training | reward 学习显式依赖当前 rollout 分布 | VARP, RLAnything |
+| Internalized self-guidance | evaluator 函数由 policy 自身生成 | Self-Guide |
+
+这些机制的共同目标是防止 Evaluator 与 Policy 脱节。其主要风险是 evaluator 与 policy 形成 co-adaptation bias：若 Evaluator 的训练数据主要来自当前 Policy，它会继承 Policy 的探索盲区与行为偏差，二者可能共同收敛到一个对外部任务无效的局部最优。评价这类方法时应重点考察其闭环中是否引入外部验证、hard negatives、独立 evaluator refresh 或显式 anti-collapse 机制——缺少这些环节的闭环，高分往往来自 evaluator 与 policy 的相互迁就而非真实能力提升。
+
+---
+
+## §7.2 Refinement-Mediated Policy Internalization
+
+### 定义与判据
+
+Refinement-Mediated Policy Internalization 指先把原始 agent experience 转化为更可学习的 refined artifact、再将其内化进 Policy 参数的复合路径，典型结构是 Narrative Tokenized → Narrative/Schematic Tokenized → Policy 参数。源经验通常是 raw trajectory、failure episode、reasoning trace、tool-use log、GUI interaction trace 或 embodied execution record。
+
+判据是衔接机制作用于*单条经验的内容*——对个别轨迹做反思、修复、校准、净化、补写或抽象，重新解释其作为监督信号的内容。其关键假设是 Agent 的历史经验并不天然等价于可学习监督：失败轨迹中可能含有正确前缀与局部有效动作，成功轨迹中也可能含有冗余动作或不可迁移的 shortcut。本节与单步 P1 的区别在于 refined artifact 会进入训练而非停留在 inference-time context；与直接 P5 的区别在于它否定"raw trajectory 本身即可靠监督"这一假设，要求经验在写入参数之前先被改写。本节与 §7.3 的分界在于操作对象——本节改写单条经验的内部内容，§7.3 构造经验集合的分布。
+
+### 代表性工作
+
+**失败经验的反思、修复与重写。** [Ge26] 把失败 rollout 提炼为 rollback target 与 reflective summary，据此生成修正分支，通过 counterfactual distillation 使模型在不显式依赖反思文本的条件下复现修正决策，把外显的 reflective agency 内化为参数能力。Agent-R [Yua25c] 从 MCTS 生成的 good 与 bad trajectories 中构造带 reflection signal 的 revision trajectory，使模型学会在识别到首个关键错误后及时切换到修正路径。STeCa [Wan25x] 把修复粒度细化到步骤层面：定位第一个偏离 expert path 的动作，生成含 reflective thought 与 corrected action 的 calibrated trajectory 替换原始偏离片段。CLEANER [Xu26j] 针对工具调用与代码执行中的噪声污染，用 similarity-aware adaptive rollback 把含错误上下文的轨迹纯化为 self-purified trajectories，并以 logit recomputation 抑制分布偏移。AgentHER [Din26] 不丢弃失败轨迹，而是从中提取其实际达成的 outcome、逆向生成 hindsight goal，把失败运行重写为与真实效果一致的成功 demonstration，再用 relabeled pairs 做 SFT 或 DPO。
+
+**过程结构的补写与重构。** Watch Every Step! [Xio24] 用 Monte Carlo rollout 把稀疏 outcome reward 下放到具体步骤，构造 step-level contrastive pairs 与 trajectory-level preference pairs，通过 step-DPO、outcome-DPO 与 SFT 的联合优化把过程层面的局部优劣结构写入 policy。ReAct Meets ActRe [Yan24m] 让 agent 探索得到动作序列后，用 ActRe 为这些动作反向补写 posterior reasoning，把原本缺乏解释的 action traces 重构为可训练的 ReAct-style trajectories，再经 contrastive self-training 内化。GUI-Reflection [Wu25b] 通过离线伪造错误与在线挖掘失败轨迹，自动构造含 reflection thought、rollback 与 correction 的 GUI self-reflection data，使 GUI 场景的自检与自修复行为内化为端到端策略。这三项工作的共同点是把缺乏可训练结构的 raw action trace 重新解释为带有过程监督信号的 trajectory。
+
+**Skill / Hint 抽象后蒸馏。** Skill-SD [Wan26al] 先把多轮 agent trajectories 总结为结构化 natural-language skills（success analysis、mistake analysis、golden workflow），再把这些 skills 仅作为训练期 teacher 的特权信息，通过 self-distillation 吸收进不显式访问 skills 的 student policy。Online Experiential Learning [Ye26f] 把在线交互轨迹递增式提炼为 experiential knowledge，经 on-policy context distillation 将"带知识的 teacher"压缩为"无知识的 student"，并通过对照实验表明先抽取经验再内化优于直接训练 raw trajectory。Memento No More [Ala25] 以 corrective hints 为中介：reviewer 从轨迹识别错误模式并生成针对性提示，teacher 在 hints 引导下产生更优行为分布，student 经 context distillation 学会在不接收 hints 的条件下复现这些行为。
+
+**边界案例。** RetroAgent [Zha26] 把原始 trajectories 事后转化为两类 refined feedback——用于 RL 更新的 intrinsic numerical reward 与可操作的 textual lessons。其 reward 支路属于本节的"refine 后内化"，而 textual-lessons 支路更接近 inference-time memory（单路径 P1），方法整体横跨本节与 evaluator-shaped policy learning，作为边界案例处理。Sar24b 把 noisy embodied trajectories 提炼为含因果解释、状态变化与子目标结构的 embodied programs of thought，同时用于 retrieval 与 SFT；其 SFT 支路属于本节，而 memory-writing 与 inference-time reuse 同样核心，它恰好提示了一类"Tokenized-terminal composite"——经验经精炼后停留在 Tokenized 载体复用、不做参数更新——这类路径在本章其余部分基本缺席。
+
+### Integration Mechanism 类型学与失效模式
+
+| 衔接机制 | 作用对象 | 代表工作 |
+|---|---|---|
+| First-error localization | 定位轨迹中首个关键偏离动作 | Agent-R, STeCa |
+| Counterfactual branch construction | 据失败点生成不含反思文本的修正分支 | Ge26 |
+| Hindsight relabeling | 按实际 outcome 逆向重写失败轨迹的目标 | AgentHER |
+| Similarity-aware purification | 剔除错误上下文，纯化轨迹 | CLEANER |
+| Posterior reasoning synthesis | 为 action trace 反向补写推理 | ReAct + ActRe |
+| Step-level process decomposition | 把 outcome 信号下放到步骤 | Watch Every Step! |
+| Skill / hint abstraction + privileged-info distillation | 抽象为结构化 skill / hint 后蒸馏 | Skill-SD, Online Experiential Learning, Memento No More |
+
+这类方法的优势在于能更充分利用失败经验与过程经验——传统 imitation learning 偏重成功 demonstrations，本节方法可从失败轨迹提取错误模式、反事实修正与改进行为。其失效模式集中在 refinement 步骤本身的脆弱性：错误定位失败原因、把偶然因素解释为通用规律、过度依赖强 teacher model，以及 refined artifact 抽象程度失控（抽象过浅则与 raw 无异，过深则丢失可执行细节）。评价时应检验 refinement 是否经过消融——若移除 refinement 步骤、直接训练 raw trajectory 的对照实验缺失，"经验需被改写"这一核心假设就未被验证。
+
+---
+
+## §7.3 Generative Experience Curation
+
+### 定义与判据
+
+Generative Experience Curation 指以经验的生成与分布构造为核心衔接机制的复合路径。其典型结构是 Policy/Teacher 参数 → Tokenized → Policy 参数：Policy 或 teacher model 先外化出 trajectories、demonstrations、interaction traces 或 synthetic tasks，这些 Tokenized experience 随后被验证、筛选、选择、搜索或重标，构造成贴近目标分布的训练数据，最后用于改进 Policy 参数。
+
+判据是衔接机制作用于*经验集合的生成与分布*而非单条经验的内容。本节方法不改写个别轨迹的内部内容，而是决定哪些经验被产生、哪些被保留、整体分布如何构成。其核心假设是有限的交互经验不足以支撑可靠的 policy learning——经验需要被主动扩展（探索、合成、搜索）并被质量控制（验证、筛选、评分），真正决定方法效果的是这些中间步骤如何把原始 agent experience 变成规模更大、质量更高、分布更合理的学习信号。本节早期版本曾以负向定义的"Other Composite"形式存在，但其内部工作共享一致的衔接逻辑，足以正向命名为一个独立 pattern。
+
+### 代表性工作
+
+**探索与合成驱动的经验生成。** OS-Genesis [Sun24b] 不先给任务再采轨迹，而是先在 GUI 环境做 interaction-driven traversal、收集 action-centered traces，再反向合成 high-level tasks，并用 trajectory reward model 对完整轨迹做分级采样。AgentTrek [Xu24] 把 web tutorials 转写为结构化 task specifications，在真实环境执行 guided replay 生成 multimodal trajectories，经 VLM evaluator 验证 instruction adherence 与 goal completion——tutorial text 不直接训练 policy，而是先组织成可执行 task scaffold。AutoSurfer [Fai26] 以 breadth-first 方式系统探索网站、获得覆盖更全面的 action traces，据此合成 grounded tasks，并用同一批探索轨迹作为 hints 引导 trajectory refinement。OpenWebVoyager [He24e] 先经 imitation learning 得到初始 web policy，再让 agent 在真实网页持续 self-exploration，由固定的外部 judge（GPT-4o）对 rollout 做 trajectory-level rejection sampling，只把 judged-good trajectories 回灌后续训练（其 judge 不随 policy 重训，因此不构成 §7.1 的 co-evolution）。Bootstrapping Language-Guided Navigation [Wan24ad] 构造 generator–navigator self-refining flywheel：instruction generator 从无标注轨迹生成指令，navigator 依 SPL、nDTW 等执行一致性指标筛选高保真样本，这些样本反过来提升 generator——这是本节少见的闭环拓扑，但回流的是经验质量而非评估器参数。BLAZER [Das25] 用强 LLM 在 simulator 中零样本生成 manipulation demonstrations，经环境执行验证仅保留成功样本，再用 automatically verified demonstrations 微调较小的 manipulation agent。
+
+**验证与筛选为核心的经验筛炼。** Scalable Data Synthesis with Step-Level Filtering [He25g] 指出即便整体成功的 CUA trajectories 也含大量局部错误或次优动作，因此对每一步做 step-level grading，只让高质量 steps 贡献监督损失、同时保留错误步骤作为上下文。Policy Improvement using Language Feedback Models [Zho24e] 先从大模型反馈蒸馏出一个 Language Feedback Model，再用它对 rollout 中的局部动作做 desirability 判断、筛出更值得模仿的行为片段，最终经 imitation learning 吸收——其 LFM 是一个学习得到但训练后固定的过滤器，方法本质是 evaluator-mediated filtering。DigiRL [Bai24] 在真实 device environment 做 autonomous rollouts，用固定的 VLM-based AutoEval 提供奖励信号，再做 instruction-level curriculum selection 与 step-level doubly-robust filtering，以 advantage-weighted regression 更新 policy。WebRL [Qi24] 从 failure set 生成新的 curriculum tasks，经 critic-based difficulty filtering 与 feasibility filtering 筛选任务，agent rollout 后再由 outcome reward model 与 actor-confidence replay filtering 选择可用经验。WebRL 虽联合更新 actor 与 critic，但 critic 的联合更新是标准 RL plumbing，其被贡献的衔接机制是 task generation 与 experience selection 串成的自演化数据管线，因此归本节而非 §7.1。PLD [Xia25h] 先训练 residual actor 去 probe base VLA 的 failure regions，再通过 hybrid rollout 收集既贴近 base-policy deployment distribution、又含 recovery behavior 的成功轨迹，最后蒸馏回 generalist VLA——其重点不在 residual RL，而在 probe、curate、distill 三阶段如何把 failure-targeted exploration 转化为分布对齐的训练数据。
+
+**Search 结构化的经验重组。** MCTS-EP [Xu25q] 用 MCTS 在 embodied environment 扩展 trajectory space，不仅提取成功路径，还在分支节点上据搜索得到的 long-horizon value 构造 preference pairs，分别用于 SFT 与 DPO——search 在此把原始交互经验重组为 success trajectories 与 structured preferences 两种可训练载体。Agent Q [Put24] 通过 MCTS 生成搜索树与多分支轨迹，结合 critic ranking 与 outcome reward 形成 node-level preference signal，再编译成 DPO 训练数据，把 search experience 从探索过程进一步编译为可监督的 preference artifacts。Trial and Error [Son24] 让 agent 主动探索并显式收集失败轨迹，再把 failure–success pairs 转成 DPO 所需的 contrastive training data，以此替代高方差的在线 RL——它不改写单条轨迹的内容，而是通过配对在集合层面构造对比式监督，故归本节而非 §7.2。
+
+### Integration Mechanism 类型学与失效模式
+
+| 衔接机制 | 作用 | 代表工作 |
+|---|---|---|
+| Interaction-driven traversal | 无任务先导地探索环境收集 traces | OS-Genesis, AutoSurfer |
+| Reverse task synthesis | 从 traces 反向合成 high-level tasks | OS-Genesis, AgentTrek |
+| Simulator generation + execution verification | 模拟器零样本生成 + 执行验证保留成功 | BLAZER |
+| Search-tree expansion → preference compilation | 搜索树编译为 node-level preference | MCTS-EP, Agent Q |
+| Learned / metric-based filtering | 用学习评估器或执行指标筛选经验 | Zho24e, Bootstrapping LGN |
+| Step-level grading | 子轨迹粒度评分后选择监督 step | He25g, DigiRL |
+| Rejection sampling | 固定 judge 对 rollout 做轨迹级取舍 | OpenWebVoyager |
+| Curriculum generation | 从失败集生成新任务并按难度过滤 | WebRL |
+| Contrastive pairing | 配对成功/失败轨迹构造偏好数据 | Trial and Error |
+
+本节方法把经验当作需要二次组织、验证与编译的中间材料，而非可直接回放的原始轨迹。其失效模式集中在三处：其一是分布漂移，生成的经验偏离目标部署分布，PLD 对 distribution-aligned data 的强调正是针对此；其二是 verifier/filter 不可靠，固定 judge 或 reward model 的偏差会被筛选机制放大、污染整个训练集；其三是 exploration coverage 不足与闭环 mode collapse，self-refining flywheel 若缺乏多样性约束会收敛到狭窄的经验子空间。评价时应检验生成—筛选机制是否经过消融、verifier 的可靠性是否被独立验证、以及 synthetic task 与真实任务的语义错配是否被检测。
+
+---
+
+## §7.4 本章小结
+
+Composite Experience Transformation Pipelines 把经验复用从单一载体转化扩展为跨载体、跨模块、跨阶段的链式或闭环过程。三类复合路径对应三种 integration logic：Evaluator–Policy Co-Evolution 处理评估与决策能力的动态匹配，问题是如何在避免 co-adaptation bias 的前提下让 Evaluator 随 Policy 共同演化；Refinement-Mediated Policy Internalization 处理经验可学习性的提升，问题是如何通过反思、修复、校准、净化或抽象把混杂的 raw experience 改写为更稳定的 training signal；Generative Experience Curation 处理经验空间的主动扩展与组织，问题是如何通过生成、探索、搜索与筛选把有限交互经验构造成分布更合理的训练数据。三类的分界由统一判据轴给出——衔接机制作用于参数载体对（§7.1）、单条经验的内容（§7.2）、还是经验集合的分布（§7.3）。
+
+Composite 方法的潜在收益是能利用失败经验、过程反馈、synthetic experience、search results 与 evaluator signals 这些单路径难以独立覆盖的经验来源；其代价是每个中间步骤都可能引入新的噪声、偏差或错误归因，且错误会沿复合链累积放大。评价一条 Composite pipeline 时应考察四点：integration mechanism 是否必要（移除该步骤的对照实验是否存在）、是否经过消融验证、是否具备防止错误经验累积的环节（外部验证、anti-collapse、独立 refresh），以及是否真正提升了 Agent 在新任务与新环境中的泛化能力。
+
+本章也暴露出文献分布上的两处空白，可作为后续研究的指示：以 Latent 载体为中间或终端的 composite 几乎不存在，而 §4 已表明 Tokenized → Latent 的单步转化是成熟方向，二者之间存在尚未被探索的组合空间；以"更优 Tokenized artifact 而不做参数更新"为终端的 composite 同样稀少，Sar24b 这类同时服务 retrieval 与训练的边界工作提示这类 memory-terminal 复合路径值得作为独立形态进一步考察。
