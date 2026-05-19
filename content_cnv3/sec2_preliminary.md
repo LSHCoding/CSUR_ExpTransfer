@@ -1,6 +1,6 @@
 # 2. Preliminaries: Experience, Carriers, and Transformations
 
-在进入对各转化路径的具体讨论之前，本节对三个基础概念给出形式化定义，构成全文的分析框架。
+本节对三个基础概念给出形式化定义，构成全文的分析框架。
 
 ## 2.1 Agent
 
@@ -72,7 +72,9 @@ Evaluator 参数的划分与 Transformation 路径组织直接相关——它既
 
 经验转化（Experience Transformation）指经验在不同载体之间的迁移过程。一个映射
 
-$$\mathcal{T}: \mathcal{C}_{\text{src}} \rightarrow \mathcal{C}_{\text{tgt}}$$
+$$
+\mathcal{T}: \mathcal{C}_{\text{src}} \rightarrow \mathcal{C}_{\text{tgt}}
+$$
 
 构成经验转化，当且仅当同时满足两个条件：
 

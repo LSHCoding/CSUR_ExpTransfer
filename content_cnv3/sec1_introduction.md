@@ -6,7 +6,7 @@
 
 本文的核心立意是不按传统的"组件"（Memory / Planning / Tool Use）或"技术"（SFT / RAG / RLHF）维度分类，而是以 Experience 的 Transformation 与 Utilization 为主线，将 memory、evaluator、training 视为同一语义记录在不同载体间的 representation-to-representation pathway，在统一框架下比较其 trade-off，并分析 LLM-based Agent 如何将交互经验转化为不同形式的载体、在不同决策场景中复用。
 
-具体而言，本文将经验的最小语义单元定义为模态无关的四元组 $e = (c, a, o, f)$，分别对应 Context（决策上下文）、Action（异质动作）、Observation（环境客观后果）与 Feedback（评价信号）。经验载体（Experience Carrier）按存在层次分为三个顶层类别：Tokenized——以离散 token 序列形式显式存在于模型输入端，占用 context window，内部按形式化程度进一步区分为 Narrative（弱形式化，依赖语言/多模态理解复用）与 Schematic（强形式化，依赖 parsing/execution/graph traversal 复用）；Latent——以连续向量或 hidden state 形式存在，直接参与 attention 或 hidden-state 计算，是人类不可直接阅读的中间表示层；Parametric——固化在神经网络权重分布中，完全隐式，推理时不占用 context，内部按功能角色区分为 Policy（actor 权重）与 Evaluator（RM/PRM/verifier 等判断器权重）。Modality（文本/视觉/GUI/具身）、Abstraction level（raw/refined）与 Experience Source（{self}/{human}/{teacher}）作为正交属性标签贯穿所有载体，不构成独立分类维度。
+本文将经验的最小语义单元定义为模态无关的四元组 $e = (c, a, o, f)$，分别对应 Context（决策上下文）、Action（异质动作）、Observation（环境客观后果）与 Feedback（评价信号）。经验载体（Experience Carrier）按存在层次分为三个顶层类别：Tokenized——以离散 token 序列形式显式存在于模型输入端，占用 context window，内部按形式化程度进一步区分为 Narrative（弱形式化，依赖语言/多模态理解复用）与 Schematic（强形式化，依赖 parsing/execution/graph traversal 复用）；Latent——以连续向量或 hidden state 形式存在，直接参与 attention 或 hidden-state 计算，是人类不可直接阅读的中间表示层；Parametric——固化在神经网络权重分布中，完全隐式，推理时不占用 context，内部按功能角色区分为 Policy（actor 权重）与 Evaluator（RM/PRM/verifier 等判断器权重）。Modality（文本/视觉/GUI/具身）、Abstraction level（raw/refined）与 Experience Source（{self}/{human}/{teacher}）作为正交属性标签贯穿所有载体，不构成独立分类维度。
 
 经验转化（Experience Transformation）定义为经验在不同载体之间的迁移过程 $\mathcal{T}: \mathcal{C}_{\text{src}} \rightarrow \mathcal{C}_{\text{tgt}}$，需同时满足两个条件：源端内容可追溯至 agent 经验记录（经验语义锚定），目标载体编码了源经验的语义内容（经验内容承载）。
 
