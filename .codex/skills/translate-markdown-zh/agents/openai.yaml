@@ -1,0 +1,4 @@
+interface:
+  display_name: "Markdown Chinese Translator"
+  short_description: "Translate Markdown with bilingual alignment"
+  default_prompt: "Use $translate-markdown-zh to translate this Markdown file or folder into Chinese while preserving the original text."

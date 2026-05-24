@@ -1,3 +1,54 @@
+# Task
+
+I am writing a survey paper for submission to ACM Computing Surveys (CSUR) on **Experience Transformation in LLM-based Agents**—how interaction experience in LLM-based agents is transformed and reused across different carrier forms.
+
+I will provide you with a list of papers. Please **read each paper in full** (do not rely solely on the abstract, introduction, or conclusion—key information is often embedded in the method, experiments, ablation studies, limitations, and appendix sections), and then extract:
+
+1. The **challenges** currently present in this research direction
+2. The **future directions** this research area may develop toward
+
+# Extraction Requirements
+
+- The number of challenges and future directions is not fixed—include as many as the literature genuinely supports.
+- A challenge or future direction does not need to be supported by all papers. Some may be grounded in only a few papers, or even a single paper—this is acceptable, but please explicitly indicate which papers support each point.
+- Every challenge and future direction must be backed by **concrete evidence from the papers**—cite specific papers, specific sections, or specific experimental observations. **Do not fabricate information. Do not make vague, ungrounded claims.** If an observation is your own inference rather than something stated in the papers, mark it explicitly as "inference."
+
+# Dig for Hidden Content
+
+Authors typically frame their work to highlight contributions and downplay weaknesses. The most valuable material for a survey Discussion often lies in what authors **do not want you to focus on**. Actively surface this hidden content, including but not limited to:
+
+- **Ablation mismatches**: components the paper's narrative emphasizes as central, but which ablation studies reveal contribute little; or conversely, components described as auxiliary that turn out to be load-bearing.
+- **Hedging language**: phrases like "may," "in our setting," "we leave to future work," "limited to," "preliminary"—these often mark places where authors quietly concede a limitation without flagging it as such.
+- **Rejected design alternatives**: choices the authors briefly mention having tried and abandoned, with reasons that imply a deeper difficulty than stated.
+- **Buried negative results**: experiments in the appendix or supplementary material that complicate or contradict the main narrative.
+- **Scope retreats**: claims in the abstract or introduction that quietly narrow as the paper progresses (e.g., a method introduced as general but evaluated only on a specific subset).
+- **Implicit assumptions**: prerequisites the method silently depends on but never defends—often visible only by noticing what is conspicuously absent from the discussion.
+- **Evaluation conveniences**: benchmark choices, baseline selections, or metric definitions that subtly favor the proposed method.
+
+When you surface such hidden content, cite the specific location in the paper (section, table, appendix), and briefly explain why this matters for the field's overall picture.
+
+# Depth of Each Challenge and Future Direction
+
+Each challenge and future direction must be elaborated in substantive detail—not a single sentence, not a one-line bullet. For each item, develop the following:
+
+- **What the challenge / direction is**, stated precisely (avoid generic phrasing like "scalability remains an issue").
+- **Concrete evidence from the papers** that establishes the challenge or motivates the direction—specific experimental findings, specific failure modes, specific design tensions. Quote or paraphrase the relevant observations with citations.
+- **Why it matters and where current work falls short** (for challenges) or **what concrete progress would look like and how it could be verified** (for future directions).
+- **Disagreements or alternative positions** across papers, if any—do not flatten genuine divergence into false consensus.
+
+Aim for each item to be a substantive paragraph (or several) of analytical content, not a header followed by a sentence.
+
+# Output Requirements
+
+- Output in English.
+- No introduction or conclusion needed. Go directly into the analysis of challenges and future directions.
+- Do not summarize each paper one by one.
+
+---
+
+
+# Paper List
+
 | 引用标识       | 标题                                                                                                             |
 | ---------- | -------------------------------------------------------------------------------------------------------------- |
 | [Xia25e]  | UI-Genie: A Self-Improving Approach for Iteratively Boosting MLLM-based Mobile GUI Agents                      |
