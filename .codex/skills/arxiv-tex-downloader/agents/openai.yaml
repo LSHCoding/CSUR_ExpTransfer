@@ -1,0 +1,4 @@
+interface:
+  display_name: "arXiv TeX Downloader"
+  short_description: "Download arXiv TeX sources reliably"
+  default_prompt: "Use $arxiv-tex-downloader to download TeX sources for these arXiv papers."

@@ -1,8 +1,6 @@
-# 4. Tokenized-to-Latent Transformations (Latent-Space Transformation)
+# 4. Latent-Space Transformation：Tokenized-to-Latent Transformations
 
-Latent-Space Transformation 将 Tokenized Agent Experience 转化为可被模型直接消费的连续表示——KV cache、hidden states、soft prompt、prefix vectors、memory token embeddings、latent memory bank 或 cross-attention memory output。这里的目标载体不再是离散 token，而是可直接参与 attention、hidden-state computation 或 action prediction 的内部计算状态。经验在复用时不再回到自然语言或其他离散 token 形式，而是以 model-native state 的形式被再次调用。
-
-Latent-Space Transformation 与常见 RAG-style memory 有本质区别：后者虽然也用 embedding 做索引，但最终被模型消费的通常是 retrieved text——embedding 只是检索机制，经验真正被复用的载体仍是 Tokenized 文本。Latent-Space Transformation 要求转化后的经验以 continuous representation 的形式直接进入 attention 或 hidden-state computation，不被解码回自然语言或其他离散 token 后再输入模型。
+Latent-Space Transformation 将 Tokenized Agent Experience 转化为可被模型直接消费的连续表示——KV cache、hidden states、soft prompt、prefix vectors、memory token embeddings、latent memory bank 或 cross-attention memory output。这里的目标载体不再是离散 token，而是可直接参与 attention、hidden-state computation 或 action prediction 的内部计算状态。经验在复用时不再回到自然语言或其他离散 token 形式，而是以 model-native state 的形式被再次调用。Latent-Space Transformation 与常见 RAG-style memory 有本质区别：后者虽然也用 embedding 做索引，但最终被模型消费的通常是 retrieved text——embedding 只是检索机制，经验真正被复用的载体仍是 Tokenized 文本。Latent-Space Transformation 要求转化后的经验以 continuous representation 的形式直接进入 attention 或 hidden-state computation，不被解码回自然语言或其他离散 token 后再输入模型。
 
 Latent-Space Transformation 也不同于单纯的 inference efficiency optimization。许多 KV cache eviction、attention sparsification、cache quantization 或 serving-level cache reuse 方法同样操作 KV cache 或 hidden states，但其目标主要是降低显存占用、延迟或吞吐成本，并不一定具有跨 session、跨 task 或长程 episode 的经验复用语义。本文只将那些明确把历史交互转化为可复用 Latent artifact 的方法纳入 Latent-Space Transformation——Latent representation 必须承担经验存储与复用功能，而非仅是推理系统中的临时加速结构。
 
