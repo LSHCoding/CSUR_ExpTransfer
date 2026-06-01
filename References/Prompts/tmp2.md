@@ -27,27 +27,15 @@
 注意：**独立评估**：从客观、专业的角度判断该修改意见是否合理。不要迎合我的立场，给出有依据的理由（逻辑、学术规范、表达效果等）；
 
 
-我的一些意见：
-1. “目标端是 agent trajectories、tool-use demonstrations、GUI/web interaction traces、step-level labels、critiques、preference annotations 等(承载参数的模型可由 LLM、VLM、VLA 任意 modality 实现)” 中，不同的示例之间有重复，比如 “tool-use demonstrations” 也可以算是 “agent trajectories”。其实主要分为 2 类，Policy 尝试的 Agent trajectory，和 Evaluator 产生的 XXX（你来想一个总括的词）。 注意，举的例子之间最好不要有语义的重复。“(承载参数的模型可由 LLM、VLM、VLA 任意 modality 实现)” 可以去掉
-2. “它与 Policy Internalization 方向相反——后者把离散经验写入参数,本路径从参数中读出可复用的经验表达,仍满足经验语义锚定与经验内容承载两个条件。” 感觉意思有点重复。放在 Section 8 可能比较好，先注释掉。
-3. “与其余六条路径的真正差异在 source 的形态:它不是一条确定的 trajectory,而是聚合态的参数” 这句话也有问题。 什么是聚合态的参数？P6 的source 也是参数。
-4. “聚合-采样这一性质带来两个组织性后果:采样有方差,低质量样本须由 verifier 或 filter 事后剔除,本路径方法几乎无一例外挂载验证环节;采样可重复并保留最优样本,带来 best-of-N 效应——在筛选后的 teacher 数据上训练的 student,其可靠性可高于 teacher 单次采样的平均水平。” 一方面，写了用 “verifier 或 filter” 过滤，感觉和 P5，P6 分不清楚了，另一方面，感觉这句话放到 Section 8 比较合适。整个 6.2 关注的是如何将参数中的经验外化出来，至于外化出来的样本如何 verifier 或 filter 事后剔除，则不是这部分主要关心的。
-5. “分界在 Evaluator 判断的去向——被物化为独立可复用的监督数据则归后者,仅作内部过滤开关则仍是前者的质量控制环节。” 去掉，你的这个解释并不清楚，而且容易搞混。
-6. “(消费方式是 SFT 还是 RL 不改变 artifact 的载体属性,归类依外化 artifact 本身的形态)” 去掉。
-7. “组织轴是环境合成度,锚定在 observation o上:” 这句话有点像元分类标准，这种风格的叙述不适合出现在 Survey 中
-8. “Teacher 在真实网站、MCP server 或操作系统上交互”，3 个例子太具体了。不适合放在开头的引入局。可以改为与真实环境做交互，比如 XXX 的风格
-9. “Log26b” 的“[]” 好像漏掉了
-10. “,失去真实环境的客观性” 建议放到 discussion 中
-11. “Xu26e”的“[]” 好像漏掉了
-12. “以上目标载体多为 Narrative trajectory,本路径同样支持 Schematic 形态:FABRIC [Ver25b] 经 LLM-only pipeline 生成 task/tool schema、policy pseudocode、dialogue 与 execution trace,其中 pseudocode 与 schema 属 Schematic Tokenized,构成 Parametric Externalization → Schematic 子格;TOUCAN 与 ToolACE 的 tool-call 部分亦含明显 Schematic 成分。” 先注释掉。
-13. “student、agent、data filtering 或 reward-model training 消费;”，一个是举例子可能有语义重复，另一个是“消费”太口语化了
-14. “与 Demonstration Externalization 外化"如何行动"不同,” 感觉可以去掉
-15. “critique、step-level label、action correctness、progress label、preference pair、verification trace 与 failure diagnosis” 思考一下有没有语义重复
-16. “——它同时外化 Policy 与 Evaluator 两端,evaluator 判断被独立物化为后两者的内容主体,超出了通常的过滤开关角色。” 感觉可以去掉。
-17. 6.2.3 discussion 也需要再重新思考一下。
-18. “一次性推理换取近乎任意规模、可定向的监督数据”，一次换任意？感觉这个说法有点矛盾。第一段的用词要再仔细思考一下。
-19. “本路径也是 {teacher} 这一经验来源的制造工艺,{teacher}-sourced experience 几乎全部经由它进入语料;它与 Policy Internalization 构成方向相反的对偶,二者常以 P7 → P5 串接——teacher 外化产生 student 训练数据,student 再做 internalization。”，不要用 制作工艺 这种类比。Survey 中应该用直接、准确的表述。
-
+1. “这一格直接继承经典 RLHF 流水线,与现成对齐工具链接口稳定。” 感觉可以去掉
+2. “等 RL 目标最大化它”，不知道这个目标是指什么？
+3. “的 RL-CAI 阶段是这一类的母本:” 感觉最好不要给出这个带主观的判断，建议去掉，直接进行描述
+4. “系统比较了 AI 反馈的两种用法”，但是后面也没有比较相关的结论？如果没有的话，感觉不要这个半句会比较好。
+5. “,与下文 [Ren26b] 同属 off-the-shelf judge 边界”，感觉去掉会比较好一点
+6. “另两项针对 policy 长期优化 imperfect 评估器引发的 reward hacking”，感觉直接说 “XXX 和 XXX 针对 policy 长期优化 imperfect 评估器引发的 reward hacking”。然后后面再给出一点详细的描述。
+7. “还有一组评估器具备步级诊断、但压缩为轨迹标量后才进 RL 的工作落在 outcome 一侧(与 §6.1.3 接壤)”的问题和 6 是一样的。
+8. “另两项提升偏好优化的稳健性:[Wu25x] 用 Bayesian router 按 query 在多个 RM 间动态选路,把路由后的偏好对送入 online DPO;[Fis24] 在离线设置下把 RM 的 reward difference 经 L2 distillation 与 forward KL 正则蒸馏进 policy 的 implicit reward,提升 label bias、distribution shift 下的稳定性。” 的问题和 6，7 是一样的。
+9. “在 agent 域,”，本身就是 Agent 领域，这个可以去掉。
 
 
 先给出一版修改后的预览后，等我通过后再编辑进文件。
