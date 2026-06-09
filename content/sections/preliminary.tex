@@ -1,75 +1,93 @@
-\section{Preliminaries}
+\section{Preliminaries: Experience, Carriers, and Transformations}
 \label{sec:prelim}
 
-Before entering the discussion of agent experience transformation, this section gives formal definitions of three foundational concepts: agent, agent experience, and experience transformation.
+This section establishes the conceptual framework used throughout the survey. Section~\ref{sec:agent} gives a working definition of the agent and its decision rule; Section~\ref{sec:experience} defines the minimal semantic unit of experience; Section~\ref{sec:carriers} gives the three-level classification of experience carriers; and Section~\ref{sec:transformation} gives the criterion for experience transformation, the basic pathways, and the place of transformation within the larger picture of experience management.
 
 \subsection{Agent}
 \label{sec:agent}
 
-This paper defines an agent as a system that performs sequential decision-making in an environment according to task context. At each decision step $t$, the agent perceives the current context $c_t$, produces an action $a_t$, the environment optionally returns an objective outcome $o_t$, and optionally receives an evaluative signal $f_t$.
-
-An agent's action $a_t$ can simultaneously span natural language reasoning chains, code generation, tool calls, environmental manipulation, and other modalities.
-
-An agent executing a task follows the loop:
-
+The agents we consider are systems that make sequential decisions in a task context: at each step the agent selects an action from the information currently available, the environment updates accordingly, and the new information feeds the next step. Following the standard characterization of a sequential-decision agent~\cite{RussellNorvig2021}, we write the decision at step $t$ as
 \[
-c_t \xrightarrow{\pi} a_t \xrightarrow{\mathcal{E}} (o_t) \xrightarrow{} (f_t) \xrightarrow{} c_{t+1}.
+  a_t \sim \pi_\theta(\cdot \mid c_t),
 \]
+where $c_t$ is the externally visible context at that step (the instruction, the interaction history, retrieved content, environment observations), $\theta$ is the agent's internal parameters, and $\pi_\theta$ is the policy those parameters define.
 
-where $\pi$ denotes the agent's policy, $\mathcal{E}$ denotes the environment, and $(\cdot)$ denotes optional elements.
+This rule places the basis for a decision in two locations: the external information flowing through $c_t$, and the internal capability fixed in $\theta$. An LLM-based agent uses both at once---the interaction records visible in the context window (dialogue history, retrieved documents, tool outputs) and the trained weights (world knowledge, reasoning patterns, task skills). The same experience can live on the $c_t$ side (external, explicit) or on the $\theta$ side (internal, implicit), and it is this distribution that Section~\ref{sec:carriers} uses to distinguish carriers.
 
-This loop is the production mechanism of experience---each round $(c_t, a_t, o_t, f_t)$ constitutes an atomic experience record, formalized in \S\ref{sec:min_unit}.
+The nature of the environment plays no part in this definition: it may be a reasoning verifier, a tool executor, the physical world, or another agent. What admits a system to our framework is the structure of its decision loop---it must carry sequential-decision semantics that map onto the experience loop of Section~\ref{sec:experience}. Static-corpus pretraining, single-step classification or labeling SFT, and traditional RL agents lack this structure and fall outside our scope.
 
 \subsection{Agent Experience}
-\label{sec:agent_exp}
+\label{sec:experience}
 
-\subsubsection{Minimum Semantic Unit}
-\label{sec:min_unit}
-
-The minimum semantic record of agent experience is defined as a modality-agnostic four-tuple:
-
+Each interaction between the agent and its environment produces one decision event, recorded as a modality-agnostic tuple
 \[
-e = (c, a, o, f),
+  e = (c, a, o, f),
 \]
+where $c$ (Context) is the information available before the decision, $a$ (Action) is the action output at that step, $o$ (Observation) is the objective consequence returned by the environment, and $f$ (Feedback) is an evaluative signal on $(c,a,o)$ or $(c,a)$. The elements $c$ and $a$ are required; $o$ and $f$ are optional---an action need not produce an observable consequence, nor need it receive evaluative feedback, and neither absence compromises the record. Here $c$ and $a$ are the context and action of the decision rule in Section~\ref{sec:agent}, while $o$ and $f$ record what the environment returns after the action.
 
-where $c$ and $a$ are required elements, and $o$ and $f$ are optional.
+A complete task execution produces a time-ordered sequence of experiences, the trajectory $\tau = (e_1, \dots, e_T)$; a set of such trajectories is written $\mathcal{D} = \{\tau^{(i)}\}_{i=1}^N$.
 
-\paragraph{Trajectory.} A complete task execution produces a temporally ordered sequence of experience records, denoted $\tau = (e_1, e_2, \dots, e_T)$, where $T$ is the trajectory length. A collection of multiple trajectories is denoted $\mathcal{D} = \{\tau^{(i)}\}_{i=1}^N$.
+Experience is the unit around which the survey is organized. It is defined at the level of \emph{what the decision evidence is}, without presupposing the form that evidence takes or where it is stored, and it spans both the external and internal sides of Section~\ref{sec:agent}.
 
-\subsubsection{Experience Carriers}
+\subsection{Experience Carriers}
 \label{sec:carriers}
 
-The minimum semantic unit $e$ describes the semantic layer of experience---it captures what happened. Experience carriers describe the form in which experience exists within the model architecture, and can be classified by degree of explicitness into three categories: Tokenized, Latent, and Parametric.
+The minimal semantic unit $e$ describes the \emph{content} of experience; an experience carrier describes its \emph{form of existence} within the model architecture, and serves as the coordinate system on which the source and target ends of a transformation pathway are described.
 
-\paragraph{Tokenized Carriers ($\mathcal{C}^T$).} Experience carriers that exist explicitly as discrete token sequences at the input side of the model's forward pass. This covers text tokens, visual patch tokens, action tokens, and serialized structural tokens (e.g., serialized graphs or workflows), and is not limited to natural language text. Tokenized carriers are further divided into two subclasses by degree of formalization:
+\subsubsection{Classification Axis}
+
+Carriers are divided along where experience exists within the model architecture. This axis maps directly onto three trade-offs that matter to agent systems: interpretability (whether a human can read the experience content directly), inference efficiency (whether reusing the experience requires paying the forward-pass cost again), and editability (whether the experience can be modified without retraining). It is orthogonal to modality: experience of any modality can exist at any existence level. And it captures the fundamental differences in carrier form, which gives the classification of transformation pathways its discriminative basis.
+
+\subsubsection{Three Top-Level Classes}
+\label{sec:carrier-classes}
+
+Carriers fall into three classes that form a Tokenized $\rightarrow$ Latent $\rightarrow$ Parametric continuum. Along this direction, interpretability and editability fall, inference efficiency rises, and the storage location moves from an external database or prompt, to GPU memory, to the model checkpoint.
+
+\paragraph{Tokenized Carriers ($\mathcal{C}^T$)} exist as discrete token sequences at the input end of the forward pass. They cover text tokens, visual patch tokens, action tokens, and serialized graph/code/workflow tokens, and are not limited to natural language. They occupy the context window and must be processed in full at inference time. By degree of formalization they split into two subclasses:
 \begin{itemize}
-  \item Narrative Tokenized ($\mathcal{C}^T_N$): Weakly formalized carriers organized by natural language or perceptual order, reused through language understanding or multimodal understanding. Typical forms include raw trajectories, reflections, summaries, and screenshots.
-
-  \item Schematic Tokenized ($\mathcal{C}^T_S$): Strongly formalized carriers organized by syntactic or topological structure, reused through parsing, execution, or graph traversal. Typical forms include workflows, SOPs, and knowledge graphs.
+  \item \textbf{Narrative Tokenized} ($\mathcal{C}^T_N$): weakly formalized carriers organized by natural language or perceptual order, reused through language and multimodal understanding. Typical forms: trajectories, reflections, summaries, natural-language rules, skill descriptions, screenshots, and video sequences.
+  \item \textbf{Schematic Tokenized} ($\mathcal{C}^T_S$): strongly formalized carriers organized by syntactic or topological structure, reused through parsing, execution, or graph traversal. Typical forms: executable code skills, workflows, DAGs, knowledge graphs, decision trees, and structured memory graphs.
 \end{itemize}
+Trajectories are the least abstract Narrative Tokenized carrier, and transformation typically starts from them.
 
-Raw interaction trajectories themselves are a special case of Narrative Tokenized carriers---they are Narrative carriers at zero abstraction (without any refinement), not raw material that exists independently outside the carrier system. Transformations typically take raw as their starting point.
+\paragraph{Latent Carriers ($\mathcal{C}^L$)} exist as continuous vectors or hidden states that participate directly in attention or hidden-state computation; they do not occupy the context window and do not change the model weights, sitting between Tokenized and Parametric. Typical forms: KV cache, prefix cache, learnable soft prompts, continuous memory tokens, and latent memory banks. They may be divided---without forming a formal subclass---by whether training is required, into session-scoped (e.g., KV cache) and cross-session reusable (e.g., soft prompts). In retrieval-based RAG, the embedding used for indexing is still decoded back to tokens and placed in the context after retrieval; it belongs to the retrieval mechanism of the indexed Tokenized content. Only a learnable representation that is not decoded back to tokens and participates directly in attention counts as Latent.
 
-\paragraph{Latent Carriers ($\mathcal{C}^L$).} Intermediate representations that exist as continuous vectors or hidden states and participate directly in model attention or hidden-state computation. Latent carriers are not equivalent to discrete tokens (they do not occupy context window space as discrete tokens), nor are they fixed in model weights (they do not alter model parameters); they form a bridging layer between the two. Typical forms include KV cache, prefix cache, learnable soft prompts, and continuous memory tokens.
-
-\paragraph{Parametric Carriers ($\mathcal{C}^P$).} Experience fixed in neural network weight distributions, fully implicit. Parametric carriers are further divided into two subclasses by functional role:
+\paragraph{Parametric Carriers ($\mathcal{C}^P$)} fix experience in the network weights, entirely implicitly; they occupy no context at inference time, output directly through the forward pass, and require retraining to modify. By functional role they split into two subclasses:
 \begin{itemize}
-  \item Policy Parameters ($\mathcal{C}^P_\pi$): The actor weights that generate actions $a$.
-  \item Evaluator Parameters ($\mathcal{C}^P_\phi$): The judge weights that evaluate $(c, a, o, f)$.
+  \item \textbf{Policy Parameters} ($\mathcal{C}^P_\pi$): the actor weights that generate the action $a$---the $\theta$ of the decision rule in Section~\ref{sec:agent}---covering LLM-agent, VLA, and GUI-agent weights as well as LoRA adapters.
+  \item \textbf{Evaluator Parameters} ($\mathcal{C}^P_\phi$): the judge weights that assess $(c,a,o,f)$, covering reward models, PRMs, verifiers, critics, and VLM judges.
 \end{itemize}
+Evaluator parameters are a junction in the organization of pathways: they are both the endpoint of Evaluator Internalization and the starting point of Evaluator-Driven Optimization.
 
 \subsection{Experience Transformation}
 \label{sec:transformation}
 
-Experience transformation refers to the process of moving experience between different carriers. A mapping
+Experience transformation is the process by which an experience $e=(c,a,o,f)$ or its derivatives is \emph{re-represented} as another carrier, written $\mathcal{T}: \mathcal{C}_{\text{src}} \rightarrow \mathcal{C}_{\text{tgt}}$. Re-representation requires the target carrier to be a new form re-derived or re-encoded from the source experience: a rise in level of abstraction (trajectories $\rightarrow$ reflections), a change in degree of formalization (trajectories $\rightarrow$ code), or a shift in existence level (tokenized $\rightarrow$ parametric). Whether source and target belong to the same top-level class does not affect the judgment---the semantic abstraction of Narrative $\rightarrow$ Narrative produces a new form just the same.
 
-\[
-\mathcal{T}: \mathcal{C}_{\text{src}} \rightarrow \mathcal{C}_{\text{tgt}}
-\]
+Operations that merely move the original record without re-representing it are excluded. Re-serialization (the same trajectory as JSON vs.\ Markdown) rewrites syntax, and subset selection and trajectory truncation keep a part or a prefix of the original record. What remains still exists in its original form and has not been encoded into a new carrier.
 
-constitutes an experience transformation if and only if it jointly satisfies the following two conditions, where $\mathcal{C}_{\text{src}}, \mathcal{C}_{\text{tgt}} \in \{\mathcal{C}^T_N,\, \mathcal{C}^T_S,\, \mathcal{C}^L,\, \mathcal{C}^P_\pi,\, \mathcal{C}^P_\phi\}$:
+Under this criterion, the survey identifies seven basic transformation pathways, grouped by source-carrier type into Sections~\ref{sec:tok2tok}--\ref{sec:param-source} (Table~\ref{tab:pathways}).
 
-\begin{enumerate}
-  \item Experience Grounding. The source content is traceable to one or more experience records $e = (c, a, o, f)$.
-  \item Experience Embodiment. The target carrier encodes the semantic content of the source experience, rather than merely undergoing a change in format.
-\end{enumerate}
+\begin{table*}[t]
+\centering
+\caption{The seven basic transformation pathways, grouped by source-carrier type.}
+\label{tab:pathways}
+\footnotesize
+\begin{tabular}{@{}l l p{0.46\textwidth} c@{}}
+\toprule
+Pathway & Source $\rightarrow$ Target & Definition & Section \\
+\midrule
+Narrative Abstraction & $\mathcal{C}^T_N \rightarrow \mathcal{C}^T_N$ & Narrative $\rightarrow$ Narrative: same-level semantic abstraction (trajectories $\rightarrow$ reflections / rules / insights). & \S\ref{sec:tok2tok} \\
+Schematic Formalization & $\mathcal{C}^T_N \rightarrow \mathcal{C}^T_S$ & Narrative $\rightarrow$ Schematic: same-level formalization (logs $\rightarrow$ code / workflows / graphs). & \S\ref{sec:tok2tok} \\
+Latent-Space Transformation & $\mathcal{C}^T \rightarrow \mathcal{C}^L$ & Tokenized $\rightarrow$ Latent: cross-level compression (trajectories $\rightarrow$ KV cache / soft prompts / memory tokens). & \S\ref{sec:tok2latent} \\
+Evaluator Internalization & $\mathcal{C}^T \rightarrow \mathcal{C}^P_\phi$ & Tokenized $\rightarrow$ Evaluator: evaluator internalization (trajectories $\rightarrow$ RM / PRM / verifier). & \S\ref{sec:tok2param} \\
+Policy Internalization & $\mathcal{C}^T \rightarrow \mathcal{C}^P_\pi$ & Tokenized $\rightarrow$ Policy: policy internalization (trajectories $\rightarrow$ policy weights via SFT / RL). & \S\ref{sec:tok2param} \\
+Evaluator-Driven Optimization & $\mathcal{C}^P_\phi \rightarrow \mathcal{C}^P_\pi$ & Evaluator $\rightarrow$ Policy: preference alignment (RM signals $\rightarrow$ policy weights via RLHF / DPO). & \S\ref{sec:param-source} \\
+Parametric Externalization & $\mathcal{C}^P \rightarrow \mathcal{C}^T$ & Parametric $\rightarrow$ Tokenized: knowledge externalization (weights $\rightarrow$ synthetic trajectories / demonstrations). & \S\ref{sec:param-source} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{Composite pipelines.} When a single paper chains several pathways, or closes them into a loop, as one integrated method---for example, the Narrative $\rightarrow$ Schematic $\rightarrow$ Parametric skill-internalization pipeline, or the Policy $\rightarrow$ Tokenized $\rightarrow$ Policy self-generation loop---its contribution lies in the integration mechanism between pathways rather than in any single pathway. Such work is discussed as a first-class object in Section~\ref{sec:composite}; two independent transformations that merely co-occur in one paper are instead cited in their respective single-pathway sections.
+
+\paragraph{Transformation and utilization.} Transformation characterizes how experience is produced into its various carriers---the production side. It forms a complete picture of experience management only when paired with the utilization side, which characterizes how experience is consumed: retrieval strategy, context orchestration, runtime maintenance, and multi-carrier coordination. This survey takes transformation as its primary axis; Section~\ref{sec:synthesis} analyzes how utilization demands---a task's constraints on latency, interpretability, and cross-task generalization---feed back to drive pathway selection.
