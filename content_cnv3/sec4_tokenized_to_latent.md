@@ -27,3 +27,24 @@ Module-Based Latent Transformation 构建能动态写入、读取、融合的 la
 Module-Based 还有几个特有问题：memory 会过时、容量饱和后旧条目被覆盖、latent 表示随训练漂移、错误经验进入后难以发现。这些条目不像 Tokenized 载体那样可以直接读和改写，错误一旦写入很难单独清理。实现复杂度越高、表达能力越强，可检视性与可控性越低。
 
 三类方法目前都集中在 embodied / VLA 场景，纯文本 reasoning agent 中的应用明显更少。原因在于经验的可 tokenize 程度：视觉、空间、proprioceptive 等经验难以无损写成离散 token，latent 化收益最大；文本推理经验本可直接以可读形式保存，latent 化的动力相应较弱。
+
+
+**Table 4.1.** Overview of Latent-Space Transformation methods.
+
+<!-- 列定义：**Acquisition Mechanism** 记录获取 latent 表示所需的机制（是否训练、训练何物）；**Latent Encoding** 记录连续表示的具体形态；**Memory Structure** 记录维护的 latent 通道数；**Retrieval** 记录推理时如何选中相关 latent；**Fusion** 记录被选中的 latent 以何种方式进入前向计算；**Modality** 记录经验的模态；**Source**（可选）记录经验来源。各列取值集合：Acquisition Mechanism ∈ {`Cache-based`, `Prompt-based`, `Module-based`}；Latent Encoding ∈ {`KV/hidden states`, `soft prompt`, `prefix K/V`, `memory token`, `composed latent`, `feature volume`, `SSM latent`}；Memory Structure ∈ {`single-stream`, `multi-stream`}；Retrieval ∈ {`always-injected`, `kNN`, `similarity`, `role-aware`, `query-routed`, `gated-admit`}；Fusion ∈ {`attention-injection`, `additive`, `concatenation`, `cross-attention`, `gated-residual`, `SSM-injection`}；Modality ∈ {`text`, `visual`, `GUI`, `embodied`, `cross-modal`}；Source* ∈ {`self`, `human`, `teacher`}。 -->
+
+| Work | Acquisition Mechanism | Latent Encoding | Memory Structure | Retrieval | Fusion | Modality |
+|------|------------------------|-----------------|------------------|-----------|--------|----------|
+| [Wu22]† | Cache-based | KV/hidden states | single-stream | kNN | attention-injection | text |
+| [Che25b] | Cache-based | KV/hidden states | single-stream | similarity | attention-injection | text |
+| [Sun26] | Cache-based | KV/hidden states | single-stream | similarity | additive | embodied |
+| [Li25g] | Prompt-based | soft prompt | single-stream | similarity | additive | embodied |
+| [Gup26] | Prompt-based | prefix K/V | single-stream | always-injected | attention-injection | text |
+| [Wu25c] | Prompt-based | memory token | single-stream | query-routed | concatenation | text |
+| [Fu26] | Module-based | composed latent | single-stream | similarity | concatenation | text |
+| [Koo25] | Module-based | composed latent | single-stream | always-injected | concatenation | embodied |
+| [Gao26] | Module-based | composed latent | single-stream | gated-admit | gated-residual | embodied |
+| [Guo26] | Module-based | SSM latent | single-stream | query-routed | SSM-injection | embodied |
+| [Shi25] | Module-based | memory token | multi-stream | similarity | gated-residual | embodied |
+| [Lin25d] | Module-based | feature volume | multi-stream | similarity | cross-attention | embodied |
+| [Yu26d] | Module-based | KV/hidden states | multi-stream | similarity | attention-injection | cross-modal |

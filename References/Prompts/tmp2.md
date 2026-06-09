@@ -1,50 +1,30 @@
+Source | Update Mechanism | Artifact Form | Retrieval Mechanism | Domain |
 
-针对段落：
-```
-§3–§6 的单路径刻画经验在单一载体对之间的一次转化。文献中存在另一类方法把多个 transformation steps 组织成链式或闭环式 pipeline——经验在 Narrative Tokenized、Schematic Tokenized、Policy 参数与 Evaluator 参数之间连续流动，相邻步骤之间的衔接机制（integration mechanism）本身构成方法的主要贡献。原始 agent trajectory 中混杂着成功策略、失败动作、局部正确步骤、环境反馈、错误恢复与噪声行为,单步转化难以独立覆盖这些异质信号;composite 通过多阶段转化把它们组织成更可靠的训练、评估或改进机制,代价是衔接环节带来的误差累积与闭环坍缩风险。
-```
-
-针对你的改写稿，我的意见：
-1. 我觉得 6.1.1 最大的问题是，分的 5 个子类好像和 6.1.1 的引入段没有对应起来。另外我感觉 6.1.1 的 5 个子类好像也不是很合理。你参考相关论文的总结（P6.describe.md），尝试重新对这部分的论文进行分类，我感觉最多最多不能超过超过 4 类。另外目前每类的名字感觉也有问题。很多类的名字，读起来感觉怪怪的。
-
-你有意见也可以提出。
-
-注意：**独立评估**：从客观、专业的角度判断该修改意见是否合理。不要迎合我的立场，给出有依据的理由（逻辑、学术规范、表达效果等）；
-
-
-
-
-
-先给出一版修改后的预览后，等我通过后再编辑进文件。
-
-查看关于每篇论文的总结（在文件`paper_summary/P4.describe.md` 和 `paper_summary/P5.describe.md` ）,不要按领域来分，而是按 Evaluator output 的信号来分，比如二分的，更细分类的等。这种分类只是我的提议，你可以看看有没有更好的分类方式。
-
-你可以查看关于每篇论文的总结（在文件`paper_summary/P4.describe.md` 和 `paper_summary/P5.describe.md` ）
-先认识思考一下该怎么修改，思考清楚之后再开始修改，给出一版修改的，但是先不要对原文进行编辑（需要等我给意见并确认了，再编辑）。
-
-评估器信号写入 policy 的吸收机制
-
-这是 survey对应的 section 2，section 2的作用是给出全文的概念体系，让全文的讨论有一个基准。附件中是目前的 section 2，但是我感觉有非常大问题，需要重构一下，目前的问题如下：
-1. 引入段感觉有点奇怪。比如“从 Russell & Norvig 的 rational agent 定义出发”，这个不像是一篇survey的风格，而像是再和别人解释。整个section 2后面的部分也有类似的问题，就是它好像是想要给别人讲解一个事情，不是survey的那种风格。survey的风格应该是motivation、直接叙述（直奔主题）、合理的分析和推理。
-2. “rational agent 的定义则更进一步：对于每一种可能的感知序列（percept sequence），理性 agent 应选择一个在该感知序列所提供的证据、**以及 agent 所具有的任何内置知识（built-in knowledge）**之下，期望最大化其性能度量的动作。” 这个可以去掉，会让读者更加迷惑，直接给出我们agent的定义就可以了。最好给出agent一个形式化的定义（这个可以参考 rational agent）
-3. “这个定义中有一个对本综述至关重要的结构” 完全就是一句废话。对应的这段话感觉也可以去掉。
-4. “2.2.2 为什么是"经验"——与三个竞争概念的比较” 感觉可以去掉
-5. “这个选择的考量是” 这种说法就不应该在论文中出现
-6. “Narrative Tokenized 的零度抽象特例”， 零度抽象特例 太难理解了，什么是 零度？根本说不清楚。这一部分换个说法。
-7. “2.3.3 正交属性” 部分的内容，在 2.3.2 中单独提一嘴就可以了，没必要单独写
-8. 2.3.4 去掉，因为定义清楚之后，这就是自然而然的事情
-9. 2.5 变成2.4 的一部分
-10. 2.6 提取一些关键的信息变成 2.4 的一部分，剩下的都去掉。
-
-这一版比上一版好多了，但我还有一些意见：
-1. “,因而能横跨 §2.1 的外部/内部两侧,并在两侧之间迁移时保持不变”，因而可以去掉，直接说横跨 XXX；“,并在两侧之间迁移时保持不变” 这句去掉，因为不知道是什么保持不变（实际上是发生了变化）。
-2. “——这正是"转化"得以有稳定主语的前提。” 去掉。
-3. “,使分类本身携带分析维度” 多余的解释，去掉。
-4. “,多模态工作无需单独通道即可纳入。” 去掉
-5. “Raw trajectories ” 直接用 “trajectories”。 raw experience就是 trajectories。 后面如果有的话，也进行替换。说raw 不太容易理解
-6. “三个正交属性作为每个 carrier 实例的标签贯穿后文路径分析,不构成独立分类维度:modality(textual / visual / GUI / embodied / cross-modal),用于讨论同一路径在不同模态下的实现差异;abstraction level(raw / refined),主要在 Tokenized 层内区分原始轨迹与精炼衍生物;experience source({self} / {human} / {teacher}),用于讨论经验来源对路径选择的影响。” 感觉还是去掉比较好，像是再解释什么，不太适合出现在survey的正文中
-
-
-这一版比上一版好多了，但我还有一些意见：
-1. 去掉注释的内容。
-2. 这个经验转化的定义感觉并不是很有效，我想再和你讨论一下。我觉得只要发生了源载体到目标载体的转化，都算（排除格式上的转化）
+| Work | Store Type | Abstraction Source | Update Mechanism | Artifact Form | Retrieval Mechanism | Domain |
+|------|------------|--------------------|------------------|---------------|---------------------|--------|
+| [Shi23b] | Static | Single-trajectory | append-only | reflection | always-on prepend | text† |
+| [Aza25] | Static | Single-trajectory | append-only | reflection | keyed lookup | web |
+| [Hua25] | Static | Single-trajectory | append-only | multi-field record | embedding similarity | customer-service |
+| [Wu26] | Static | Single-trajectory | append-only | procedural pair | embedding similarity | text |
+| [Liu23] | Static | Single-trajectory | N/A | summary | hierarchical drilldown | embodied |
+| [Liu25e] | Static | Single-trajectory | append-only | summary | embedding similarity | web |
+| [Che25d] | Static | Single-trajectory | append-only | multi-field record | embedding similarity | code |
+| [Wan26ap] | Static | Single-trajectory | append-only | multi-field record | embedding similarity | code |
+| [Fu24] | Static | Multi-trajectory | append-only | rule | keyed lookup | web† |
+| [Yan25] | Static | Multi-trajectory | append-only | insight | embedding similarity | text† |
+| [Yan26b] | Static | Multi-trajectory | append-only | insight | embedding similarity | web |
+| [Zha23c] | Dynamic | Multi-trajectory | operation-edit | insight | embedding similarity | text† |
+| [Ye25b] | Dynamic | Single-trajectory | operation-edit | rule | hierarchical drilldown | text |
+| [Che24] | Dynamic | Multi-trajectory | operation-edit | rule | always-on prepend | web† |
+| [Zha25f] | Dynamic | Single-trajectory | operation-edit | insight | always-on prepend | text† |
+| [Suz25] | Dynamic | Single-trajectory | operation-edit | insight | always-on prepend | text |
+| [Mi26b] | Dynamic | Single-trajectory | survival-prune | procedural pair | keyed lookup | mobile |
+| [Hua25e] | Dynamic | Single-trajectory | survival-prune | reflection | graph traversal | web |
+| [Cao25] | Dynamic | Single-trajectory | survival-prune | multi-field record | embedding similarity | code |
+| [Su25] | Dynamic | Multi-trajectory | survival-prune | multi-field record | embedding similarity | text† |
+| [Ni26] | Dynamic | Multi-trajectory | skill-curate | skill | always-on prepend | text† |
+| [Yan26] | Dynamic | Multi-trajectory | skill-curate | skill | embedding similarity | text |
+| [Ma26b] | Dynamic | Multi-trajectory | skill-curate | skill | task-routed | general† |
+| [Ma25] | Dynamic | Single-trajectory | multi-tier | insight | embedding similarity | text |
+| [Maj23] | Dynamic | Single-trajectory | multi-tier | rule | always-on prepend | text |
+| [Liu25] | Dynamic | Single-trajectory | multi-tier | multi-field record | embedding similarity | web |

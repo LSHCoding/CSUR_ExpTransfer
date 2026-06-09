@@ -38,7 +38,32 @@ Dynamic Experience Store 类方法把经验库当作随交互持续演化的对�
 
 | Work | Store Type | Abstraction Source | Update Mechanism | Artifact Form | Retrieval Mechanism | Domain |
 |------|------------|--------------------|------------------|---------------|---------------------|--------|
-|      |            |                    |                  |               |                     |        |
+| [Shi23b] | Static | Single-trajectory | append-only | reflection | always-on prepend | text† |
+| [Aza25] | Static | Single-trajectory | append-only | reflection | keyed lookup | web |
+| [Hua25] | Static | Single-trajectory | append-only | multi-field record | embedding similarity | customer-service |
+| [Wu26] | Static | Single-trajectory | append-only | procedural pair | embedding similarity | text |
+| [Liu23] | Static | Single-trajectory | N/A | summary | hierarchical drilldown | embodied |
+| [Liu25e] | Static | Single-trajectory | append-only | summary | embedding similarity | web |
+| [Che25d] | Static | Single-trajectory | append-only | multi-field record | embedding similarity | code |
+| [Wan26ap] | Static | Single-trajectory | append-only | multi-field record | embedding similarity | code |
+| [Fu24] | Static | Multi-trajectory | append-only | rule | keyed lookup | web† |
+| [Yan25] | Static | Multi-trajectory | append-only | insight | embedding similarity | text† |
+| [Yan26b] | Static | Multi-trajectory | append-only | insight | embedding similarity | web |
+| [Zha23c] | Dynamic | Multi-trajectory | operation-edit | insight | embedding similarity | text† |
+| [Ye25b] | Dynamic | Single-trajectory | operation-edit | rule | hierarchical drilldown | text |
+| [Che24] | Dynamic | Multi-trajectory | operation-edit | rule | always-on prepend | web† |
+| [Zha25f] | Dynamic | Single-trajectory | operation-edit | insight | always-on prepend | text† |
+| [Suz25] | Dynamic | Single-trajectory | operation-edit | insight | always-on prepend | text |
+| [Mi26b] | Dynamic | Single-trajectory | survival-prune | procedural pair | keyed lookup | mobile |
+| [Hua25e] | Dynamic | Single-trajectory | survival-prune | reflection | graph traversal | web |
+| [Cao25] | Dynamic | Single-trajectory | survival-prune | multi-field record | embedding similarity | code |
+| [Su25] | Dynamic | Multi-trajectory | survival-prune | multi-field record | embedding similarity | text† |
+| [Ni26] | Dynamic | Multi-trajectory | skill-curate | skill | always-on prepend | text† |
+| [Yan26] | Dynamic | Multi-trajectory | skill-curate | skill | embedding similarity | text |
+| [Ma26b] | Dynamic | Multi-trajectory | skill-curate | skill | task-routed | general† |
+| [Ma25] | Dynamic | Single-trajectory | multi-tier | insight | embedding similarity | text |
+| [Maj23] | Dynamic | Single-trajectory | multi-tier | rule | always-on prepend | text |
+| [Liu25] | Dynamic | Single-trajectory | multi-tier | multi-field record | embedding similarity | web |
 
 ### 3.1.3 Discussion
 
@@ -71,9 +96,27 @@ AriGraph [Ano24] 与 A-MEM [Xu25b] 都把单步交互转为带语义结构的原
 
 <!-- 列定义：**Artifact Category** 记录转化产物在 §3.2 中所属的语义功能类别；**Artifact Form** 记录转化产物的具体结构形态；**Downstream Mechanism** 记录下游 Agent 使用 artifact 的方式；**Retrieval Mechanism** 记录从 artifact 库中选取目标条目的方式；**Hierarchical Structure** 记录 artifact 是否带有多层级抽象结构；**Domain** 记录工作的实验场景或目标领域。各列取值集合：Artifact Category ∈ {`Programmatic Skill`, `Procedural Workflow`, `Structured Memory Graph`}；Artifact Form ∈ {`code skill`, `JSON skill`, `workflow trajectory`, `workflow template`, `hierarchical tree`, `transition graph`, `knowledge graph`, `environment map`}；Downstream Mechanism ∈ {`execute`, `parse-and-instantiate`, `traverse`}；Retrieval Mechanism ∈ {`embedding similarity`, `keyed lookup`, `URL pattern matching`, `graph traversal`, `task-routed`, `hierarchical drilldown`}；Hierarchical Structure ∈ {`flat`, `multi-level`}；Domain ∈ {`Minecraft`, `web`, `mobile`, `multi-agent`, `embodied`, `code`}。 -->
 
+**Table 3.2.** Overview of Schematic Formalization methods.
+
 | Work | Artifact Category | Artifact Form | Downstream Mechanism | Retrieval Mechanism | Hierarchical Structure | Domain |
 |------|-------------------|---------------|----------------------|---------------------|------------------------|--------|
-|      |                   |               |                      |                     |                        |        |
+| Voyager [Wan23c] | Programmatic Skill | code skill | execute | embedding similarity | flat | Minecraft |
+| ASI [Wan25d] | Programmatic Skill | code skill | execute | task-routed | flat | web |
+| SkillWeaver [Zhe25c] | Programmatic Skill | code skill | execute | task-routed | flat | web |
+| WebXSkill [Wan26d] | Programmatic Skill | JSON skill | execute | URL pattern matching | flat | web |
+| AWM [Wan24] | Procedural Workflow | workflow trajectory | parse-and-instantiate | task-routed | flat | web |
+| WorkflowGen [Wei26] | Procedural Workflow | workflow template | parse-and-instantiate | embedding similarity | multi-level | tool-use |
+| HMT [Tan26] | Procedural Workflow | hierarchical tree | parse-and-instantiate | hierarchical drilldown | multi-level | web |
+| MACLA [For25] | Procedural Workflow | workflow template | parse-and-instantiate | keyed lookup | multi-level | cross-domain |
+| MOBIMEM [Liu25i] | Procedural Workflow | workflow template | parse-and-instantiate | task-routed | multi-level | mobile |
+| A2Flow [Zha25c] | Procedural Workflow | workflow template | execute | task-routed | flat | reasoning-QA |
+| FlowMind [Liu26] | Procedural Workflow | workflow template | parse-and-instantiate | task-routed | flat | tool-use |
+| AriGraph [Ano24] | Structured Memory Graph | knowledge graph | traverse | graph traversal | flat | text-game |
+| A-MEM [Xu25b] | Structured Memory Graph | knowledge graph | traverse | embedding similarity | flat | dialogue-QA |
+| G-Memory [Zha25] | Structured Memory Graph | knowledge graph | traverse | graph traversal | multi-level | multi-agent |
+| MobileGPT [Lee23] | Structured Memory Graph | transition graph | traverse | graph traversal | multi-level | mobile |
+| Environment Maps [Fen26] | Structured Memory Graph | environment map | traverse | graph traversal | flat | web |
+| BrainMem [Ma26] | Structured Memory Graph | knowledge graph | traverse | graph traversal | multi-level | embodied |
 
 ### 3.2.4 Discussion
 
