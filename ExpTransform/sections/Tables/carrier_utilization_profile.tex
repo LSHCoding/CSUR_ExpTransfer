@@ -1,0 +1,57 @@
+% 所需宏包：
+% \usepackage{booktabs}
+% \usepackage{tabularx}
+% \usepackage{ctex}        % 中文支持（XeLaTeX / LuaLaTeX）
+
+\begin{table}[htbp]
+  \centering
+  \caption{Carrier utilization profiles across four dimensions.}
+  \label{tab:8.2}
+  \small
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabularx}{\textwidth}{lXXXX}
+    \toprule
+    \textbf{Carrier} &
+    \textbf{Access Interface} &
+    \textbf{Access Granularity} &
+    \textbf{Utilization Cost（计算位置）} &
+    \textbf{Revisability} \\
+    \midrule
+    Narrative &
+    context injection（$c_t$） &
+    per-item（精确取单条 reflection/rule） &
+    retrieval latency + context tokens·每次复用均付
+    （GPU prefill + 外部检索） &
+    append/edit/delete·逐条互不影响 \\
+    \midrule
+    Schematic &
+    context injection（$c_t$）；executable 形态经
+    external execution 后结果回 $c_t$ &
+    per-item / per-node &
+    context tokens（GPU prefill）；executable 形态叠加
+    execution compute·卸至外部 executor·通常同步阻塞 &
+    version/replace（executable 需重测） \\
+    \midrule
+    Latent &
+    forward-pass attention（输入侧·连续向量·不占 token 位） &
+    per-block（整段·粗） &
+    无独立检索/编码开销·融入 forward pass（GPU）；
+    trained 形态占虚拟 token 位·与 bank 长度成正比·非零 &
+    不可逐条（session-scoped 自动失效 /
+    trained 重训整个 bank） \\
+    \midrule
+    Policy &
+    forward-pass weights（$\theta$）$\rightarrow$ $a_t$ &
+    indivisible / always-on（全局生效·不可取单条） &
+    零边际（每单位经验）·仍付完整 forward pass（GPU） &
+    retrain·可能 catastrophic forgetting \\
+    \midrule
+    Evaluator &
+    forward-pass weights（$\theta$）$\rightarrow$ 候选信号 &
+    indivisible / always-on &
+    零边际（每单位经验）·额外 forward pass·offline 可摊销 /
+    realtime gate 纯增量 &
+    retrain·可能破坏校准 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
