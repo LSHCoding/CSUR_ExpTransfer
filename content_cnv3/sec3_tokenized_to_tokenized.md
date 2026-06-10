@@ -4,7 +4,7 @@
 
 ## 3.1 Narrative Abstraction:Narrative-to-Narrative Transformation
 
-Narrative Abstraction 通过抽象、压缩、重写或归纳，从 raw Narrative trajectory 派生出新的 Narrative artifact——转化全程在 Tokenized 层内完成。转化后的 artifact 形态包括 reflection、summary、rule、insight、skill 等，后续 Agent 通过 retrieval 将其作为 in-context guidance 注入决策上下文，依靠 language / multimodal understanding 直接阅读复用。本节按经验库的维护方式将方法分为两类：Static Experience Store 中条目写入后不再回改，Dynamic Experience Store 则涉及改写、合并或淘汰。
+Narrative Abstraction 通过抽象、压缩、重写或归纳，从 trajectory 派生出新的 Narrative artifact——转化全程在 Tokenized 层内完成。转化后的 artifact 形态包括 reflection、summary、rule、insight、skill 等，后续 Agent 通过 retrieval 将其作为 in-context guidance 注入决策上下文，依靠 language / multimodal understanding 直接阅读复用。本节按经验库的维护方式将方法分为两类：Static Experience Store 中条目写入后不再回改，Dynamic Experience Store 则涉及改写、合并或淘汰。
 
 ### 3.1.1 Static Experience Store
 

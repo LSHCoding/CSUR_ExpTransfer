@@ -1,0 +1,141 @@
+
+
+
+
+\begin{landscape}
+
+{\small                          % 字号调小，适配宽表
+\setlength{\tabcolsep}{5pt}      % 列间距微调
+
+\begin{longtable}{%
+  L{2.0cm}   % Pathway
+  L{2.8cm}   % Mechanism
+  L{2.5cm}   % Construction Cost
+  L{6.5cm}   % Information Transformation
+  L{3.5cm}   % Incrementality
+  L{2.8cm}   % Output Verifiability
+  L{2.2cm}   % 代表工作 / 详节
+}
+
+%── 标题（如处于第 8 章，LaTeX 会自动编号为 Table 8.1）──────
+\caption{Pathway production profiles across five dimensions.}%
+\label{tab:pathway-profiles}\\
+
+%── 首页页眉 ──────────────────────────────────────────────
+\toprule
+\textbf{Pathway} &
+\textbf{Mechanism} &
+\textbf{Construction Cost} &
+\textbf{Information Transformation} &
+\textbf{Incrementality} &
+\textbf{Output Verifiability} &
+\textbf{代表工作 / 详节} \\
+\midrule
+\endfirsthead
+
+%── 续页页眉 ──────────────────────────────────────────────
+\multicolumn{7}{c}{\tablename~\thetable\quad（续表）}\\[3pt]
+\toprule
+\textbf{Pathway} &
+\textbf{Mechanism} &
+\textbf{Construction Cost} &
+\textbf{Information Transformation} &
+\textbf{Incrementality} &
+\textbf{Output Verifiability} &
+\textbf{代表工作 / 详节} \\
+\midrule
+\endhead
+
+%── 续页页脚 ──────────────────────────────────────────────
+\midrule
+\multicolumn{7}{r}{\small 接下页} \\
+\endfoot
+
+%── 末页页脚 ──────────────────────────────────────────────
+\bottomrule
+\endlastfoot
+
+%── P1 ───────────────────────────────────────────────────
+P1 Narrative Abstraction &
+LLM inference &
+低·可全自动 &
+\textbf{保留}: 模式与洞察 /
+\textbf{损失}: 步骤与时序(by-design) /
+\textbf{注入}: 跨轨迹综合 insight(源自模型先验) &
+增量(append); dynamic store 有 merge/prune 级联 &
+直接阅读判断(主观) &
+Reflexion [Shi23b]; \S3.1 \\
+\midrule
+%── P2 ───────────────────────────────────────────────────
+P2 Schematic Formalization &
+LLM inference + 可选 execution 验证 &
+中·需可执行环境 &
+\textbf{保留}: 过程结构 /
+\textbf{损失}: NL nuance/隐含假设(by-design) /
+\textbf{注入}: 显式依赖结构 &
+增量(新 artifact 入库) &
+execution test(客观, coverage-limited) &
+Voyager [Wan23c]; \S3.2 \\
+\midrule
+%── P3 ───────────────────────────────────────────────────
+P3 Latent-Space Transformation &
+cache: gradient-free / trained: gradient &
+cache 低·仅 session; trained 中 &
+\textbf{保留}: 计算状态 /
+\textbf{损失}: 符号可读性(by-design) /
+\textbf{注入}: token 未显式编码的统计规律 &
+cache 即时重建; trained 需 batch 重训 &
+无直接验证·仅 ablation 间接 &
+LAG [Che25b](cache)/
+ReasonCACHE [Gup26](trained); \S4 \\
+\midrule
+%── P4 ───────────────────────────────────────────────────
+P4 Evaluator Internalization &
+gradient training &
+高·需标注或明确成败信号 &
+\textbf{保留}: 评估偏好 /
+\textbf{损失}: 校准来源与单条贡献
+(mix: by-design + by-limitation) &
+batch 重训; 新标注需重训以保校准 &
+无直接验证·hold-out calibration check &
+Let's Verify Step by Step [Lig23]; \S5.1 \\
+\midrule
+%── P5 ───────────────────────────────────────────────────
+P5 Policy Internalization &
+gradient training (SFT/RL) &
+高·需大规模高质量 trajectory &
+\textbf{保留}: 决策模式 /
+\textbf{损失}: 单条贡献不可区分(by-design)
++ 欠拟合/reward hacking 风险(by-limitation) &
+batch 重训(可热启动); RL 可在线但漂移衰减旧经验 &
+仅 behavioral (rollout 间接比较) &
+SWE-Gym [Pan24]; \S5.2 \\
+\midrule
+%── P6 ───────────────────────────────────────────────────
+P6 Evaluator-Driven Optimization &
+gradient training (RLHF/DPO) &
+高·叠加 P4 成本 &
+\textbf{保留}: 偏好迁移入 policy /
+\textbf{注入}: trajectory-only 学不到的细粒度偏好 /
+\textbf{损失}: 经 P4+P6 双重压缩 &
+online/iterative·漂移敏感 &
+behavioral·循环验证风险
+(Evaluator $\rightleftarrows$ Policy) &
+Constitutional AI [Bai22b]; \S6.1 \\
+\midrule
+%── P7 ───────────────────────────────────────────────────
+P7 Parametric Externalization &
+从 policy 采样生成 &
+中·依赖采样质量·须先有 trained policy &
+\textbf{保留}: 权重中的能力经采样部分恢复为 token /
+\textbf{损失}: 采样未覆盖部分 /
+\textbf{注入}: hallucination 风险 &
+可增量生成新样本·跟随源模型更新 &
+产物可读但不可追溯权重成分·完备性不可验证 &
+Explorer [Pah25]; \S6.2 \\
+
+\end{longtable}
+
+} % end \small
+
+\end{landscape}

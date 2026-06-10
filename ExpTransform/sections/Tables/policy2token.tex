@@ -1,0 +1,35 @@
+% 所需宏包：booktabs, graphicx
+% \usepackage{booktabs}
+% \usepackage{graphicx}
+
+\begin{table}[htbp]
+\centering
+\caption{Overview of Parametric Externalization methods.}
+\label{tab:parametric-externalization}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llllllll@{}}
+\toprule
+\textbf{Work} & \textbf{Source Parameter} & \textbf{Environment Grounding} & \textbf{Externalized Artifact} & \textbf{Verification Mechanism} & \textbf{Generator--Learner Relation} & \textbf{Downstream Use} & \textbf{Domain} \\
+\midrule
+% policy / real-environment
+\cite{Pah25}                        & policy    & real-environment       & agent trajectory                  & LLM/VLM-judge          & teacher$\to$student (cross-model) & SFT/BC     & web             \\
+\cite{Tra25}                        & policy    & real-environment       & agent trajectory                  & LLM/VLM-judge          & teacher$\to$student (cross-model) & SFT/BC     & web             \\
+\cite{Tao26}                        & policy    & constructive           & agent trajectory                  & env-success            & teacher$\to$student (cross-model) & SFT/BC     & RAG             \\
+\cite{Xu25o}                        & policy    & real-environment       & agent trajectory                  & multi-stage-verifier   & teacher$\to$student (cross-model) & SFT/BC     & tool-use/MCP    \\
+\cite{Li25at}                       & policy    & constructive           & agent trajectory                  & none                   & teacher$\to$student (cross-model) & SFT/BC     & RAG             \\
+\cite{Wan25ar}                      & policy    & real-environment       & agent trajectory                  & multi-stage-verifier   & teacher$\to$student (cross-model) & SFT/BC     & web             \\
+\cite{Awa25}                        & policy    & real-environment       & agent trajectory                  & multi-stage-verifier   & teacher$\to$student (cross-model) & SFT/BC     & computer-use    \\
+\cite{Yan25ab}                      & policy    & simulated-environment  & agent trajectory                  & multi-stage-verifier   & teacher$\to$student (cross-model) & SFT/BC     & tool-use/MCP    \\
+\cite{Che26d}                       & policy    & real-environment       & agent trajectory                  & env-success            & teacher$\to$student (cross-model) & SFT/BC     & mobile          \\
+\cite{Pra25b}                       & policy    & simulated-environment  & agent trajectory                  & multi-stage-verifier   & teacher$\to$student (cross-model) & SFT/BC     & tool-use/MCP    \\
+\cite{Tan23}                        & policy    & simulated-environment  & agent trajectory                  & none                   & teacher$\to$student (cross-model) & SFT/BC     & tool-use/MCP    \\
+\cite{Liu24n}                       & policy    & constructive           & agent trajectory                  & multi-stage-verifier   & teacher$\to$student (cross-model) & SFT/BC     & tool-use/MCP    \\
+\cite{Liu24o}                       & policy    & simulated-environment  & agent trajectory                  & multi-stage-verifier   & teacher$\to$student (cross-model) & SFT/BC     & tool-use/MCP    \\
+\cite{Fai26}                        & policy    & real-environment       & agent trajectory                  & multi-stage-verifier   & teacher$\to$student (cross-model) & SFT/BC     & web             \\
+\cite{He25g}            & policy    & real-environment       & agent trajectory                  & multi-stage-verifier   & teacher$\to$student (cross-model) & SFT/BC     & computer-use    \\
+\cite{Wei26b}                       & policy    & real-environment       & agent trajectory                  & multi-stage-verifier   & teacher$\to$student (cross-model) & SFT/BC     & GUI             \\
+\cite{He25g}    & evaluator & annotation-over-trajectory & correctness/quality label    & rubric                 & teacher$\to$student (cross-model) & RM-training & computer-use   \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}

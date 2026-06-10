@@ -1,0 +1,66 @@
+% 所需宏包：booktabs, graphicx
+% \usepackage{booktabs}
+% \usepackage{graphicx}
+
+\begin{table}[htbp]
+\centering
+\caption{Overview of Policy Internalization methods.}
+\label{tab:policy-internalization}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+\textbf{Work} & \textbf{Learning Objective} & \textbf{Credit Granularity} & \textbf{Supervision Signal} & \textbf{Optimization Algorithm} & \textbf{Experience Source} & \textbf{Domain} \\
+\midrule
+% imitation
+\cite{Pat24}   & imitation  & trajectory & model-judge        & SFT/BC                              & self          & web                                   \\
+\cite{Lai25d}  & imitation  & step       & model-judge        & SFT/BC (LoRA)                       & teacher       & mobile                                \\
+\cite{Pap25b}  & imitation  & trajectory & task-outcome       & SFT/BC                              & human / self  & mobile                                \\
+\cite{Pah25}   & imitation  & trajectory & model-judge        & SFT/BC                              & teacher       & web                                   \\
+\cite{Gan25b}  & imitation  & trajectory & model-judge        & SFT/BC                              & self          & web                                   \\
+\cite{Zen23d}  & imitation  & token      & task-outcome       & SFT/BC                              & teacher       & tool-use                              \\
+\cite{Mur24b}  & imitation  & trajectory & model-judge        & SFT/BC                              & self          & web                                   \\
+\cite{Pan24}   & imitation  & trajectory & unit-test          & rejection-sampling                  & teacher       & code                                  \\
+\cite{Guo25d}  & imitation  & trajectory & task-outcome       & SFT/BC                              & human / self  & embodied                              \\
+\addlinespace[3pt]
+% preference
+\cite{Shi24c}  & preference & trajectory & ground-truth match & DPO                                 & teacher       & web / embodied / text-reasoning       \\
+\cite{Son24}   & preference & trajectory & task-outcome       & DPO                                 & teacher / self& web / embodied / text-reasoning       \\
+\cite{Da25}    & preference & trajectory & unit-test          & DPO                                 & self          & code                                  \\
+\cite{Che24k}  & preference & step       & model-judge        & DPO (SFT warm-start)                & teacher       & tool-use                              \\
+\cite{Gao25c}  & preference & step       & task-outcome       & DPO (traj/step/group) + BC          & teacher       & embodied / web / SQL                  \\
+\cite{Liu25z}  & preference & step       & ground-truth match & DPO                                 & human         & web                                   \\
+\midrule
+% env-reward
+\cite{Car23}   & env-reward & step       & task-outcome       & PPO                                 & self          & embodied                              \\
+\cite{Szo23}   & env-reward & step       & shaped-composite   & DD-PPO                              & self          & embodied                              \\
+\cite{Zho24f}  & env-reward & token      & task-outcome       & hierarchical actor-critic (ArCHer)  & self          & text-reasoning / web                  \\
+\cite{Wei25}   & env-reward & trajectory & task-outcome       & M-GRPO                              & self          & web                                   \\
+\cite{Gol25}   & env-reward & trajectory & unit-test          & DAPO                                & self          & code                                  \\
+\cite{Luo25b}  & env-reward & step       & ground-truth match & GRPO                                & self          & GUI                                   \\
+\cite{Zha25an} & env-reward & step       & ground-truth match & GRPO                                & self          & mobile                                \\
+\cite{Li25aa}  & env-reward & trajectory & task-outcome       & GRPO                                & self          & embodied                              \\
+\cite{Zha24s}  & env-reward & token      & task-outcome       & PPO                                 & self          & text-reasoning / embodied             \\
+\cite{Xi25c}   & env-reward & trajectory & task-outcome       & GRPO (ScalingInter-RL)              & self          & web / embodied / tool-use             \\
+\cite{Don25d}  & env-reward & token      & shaped-composite   & ARPO                                & self          & tool-use                              \\
+\cite{Zha25ag} & env-reward & token      & rule-verifiable    & GRPO                                & self          & embodied / web / tool-use             \\
+\cite{Wan25y}  & env-reward & turn       & ground-truth match & GRPO                                & self          & web                                   \\
+\cite{Lu25j}   & env-reward & step       & shaped-composite   & semi-online RL                      & human         & GUI                                   \\
+\cite{Xu25k}   & env-reward & trajectory & task-outcome       & EPO (on PPO/GRPO)                   & self          & embodied / text-reasoning             \\
+\cite{Hua26d}  & env-reward & trajectory & shaped-composite   & GRPO                                & self          & SQL                                   \\
+\cite{Hu26e}   & env-reward & turn       & task-outcome       & HAPO                                & self          & embodied                              \\
+\cite{Don25c}  & env-reward & token      & shaped-composite   & AEPO                                & self          & tool-use                              \\
+\cite{Wan25ad} & env-reward & step       & shaped-composite   & EMPG (on GRPO/DAPO)                 & self          & web / embodied / tool-use             \\
+\cite{Lu25f}   & env-reward & trajectory & rule-verifiable    & GRPO                                & self          & GUI                                   \\
+\cite{Fen25c}  & env-reward & step       & task-outcome       & GiGPO                               & self          & embodied / web / tool-use             \\
+\cite{Qia25b}  & env-reward & step       & shaped-composite   & GRPO                                & self          & tool-use                              \\
+\cite{Gu26b}   & env-reward & trajectory & task-outcome       & GRPO                                & self          & mobile                                \\
+\cite{Che25af} & env-reward & token      & task-outcome       & LOOP                                & self          & tool-use                              \\
+\cite{Li25ae}  & env-reward & turn       & task-outcome       & Turn-PPO                            & self          & web / text-reasoning                  \\
+\cite{Hon24}   & env-reward & token      & task-outcome       & Q-SFT                               & human$^\dagger$ & text-reasoning / web / embodied     \\
+\cite{Li26r}   & env-reward & step       & shaped-composite   & GRPO                                & self          & SQL                                   \\
+\cite{Zha25ao} & env-reward & step       & rule-verifiable    & GRPO                                & self          & embodied / text-reasoning             \\
+\cite{Pap25c}  & env-reward & step       & task-outcome       & SoLS (+STR)                         & self          & mobile                                \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}

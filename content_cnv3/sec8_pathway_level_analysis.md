@@ -10,15 +10,17 @@
 
 本节以五个维度刻画每条 pathway 的生产画像。Production Mechanism（D1）：转化靠什么计算机制执行，如 LLM inference、gradient-based training、gradient-free persistence、execution + verification loop。Construction Cost（D2）：转化消耗多少计算与人力。Information Transformation（D3）：经验信息在转化中被保留、损失、注入了什么，以及能否被追溯（traceability）；其中 loss 区分 lossy-by-design（抽象/压缩必然丢弃细节，损失类别可控）与 lossy-by-limitation（欠拟合、reward hacking、采样偏差，损失类别不可控，属工程风险而非设计意图）。Incrementality（D4）：新经验持续到来时，转化能否增量执行。Output Verifiability（D5）：转化产物能否在不依赖下游任务表现的情况下被独立验证。
 
-| Pathway | Mechanism | Construction Cost | Information Transformation | Incrementality | Output Verifiability | 代表工作 / 详节 |
-|---|---|---|---|---|---|---|
-| P1 Narrative Abstraction | LLM inference | 低·可全自动 | **保留**: 模式与洞察 / **损失**: 步骤与时序(by-design) / **注入**: 跨轨迹综合 insight(源自模型先验) | 增量(append); dynamic store 有 merge/prune 级联 | 直接阅读判断(主观) | Reflexion [Shi23b]；§3.1 |
-| P2 Schematic Formalization | LLM inference + 可选 execution 验证 | 中·需可执行环境 | **保留**: 过程结构 / **损失**: NL nuance/隐含假设(by-design) / **注入**: 显式依赖结构 | 增量(新 artifact 入库) | execution test(客观, coverage-limited) | Voyager [Wan23c]；§3.2 |
-| P3 Latent-Space Transformation | cache: gradient-free / trained: gradient | cache 低·仅 session; trained 中 | **保留**: 计算状态 / **损失**: 符号可读性(by-design) / **注入**: token 未显式编码的统计规律 | cache 即时重建; trained 需 batch 重训 | 无直接验证·仅 ablation 间接 | LAG [Che25b]（cache）/ ReasonCACHE [Gup26]（trained）；§4 |
-| P4 Evaluator Internalization | gradient training | 高·需标注或明确成败信号 | **保留**: 评估偏好 / **损失**: 校准来源与单条贡献(mix: by-design + by-limitation) | batch 重训; 新标注需重训以保校准 | 无直接验证·hold-out calibration check | Let's Verify Step by Step [Lig23]；§5.1 |
-| P5 Policy Internalization | gradient training (SFT/RL) | 高·需大规模高质量 trajectory | **保留**: 决策模式 / **损失**: 单条贡献不可区分(by-design) + 欠拟合/reward hacking 风险(by-limitation) | batch 重训(可热启动); RL 可在线但漂移衰减旧经验 | 仅 behavioral (rollout 间接比较) | SWE-Gym [Pan24]；§5.2 |
-| P6 Evaluator-Driven Optimization | gradient training (RLHF/DPO) | 高·叠加 P4 成本 | **保留**: 偏好迁移入 policy / **注入**: trajectory-only 学不到的细粒度偏好 / **损失**: 经 P4+P6 双重压缩 | online/iterative·漂移敏感 | behavioral·循环验证风险 (Evaluator ⇄ Policy) | Constitutional AI [Bai22b]；§6.1 |
-| P7 Parametric Externalization | 从 policy 采样生成 | 中·依赖采样质量·须先有 trained policy | **保留**: 权重中的能力经采样部分恢复为 token / **损失**: 采样未覆盖部分 / **注入**: hallucination 风险 | 可增量生成新样本·跟随源模型更新 | 产物可读但不可追溯权重成分·完备性不可验证 | Explorer [Pah25]；§6.2 |
+
+| Pathway                          | Mechanism                                | Construction Cost            | Information Transformation                                                        | Incrementality                             | Output Verifiability                   | 代表工作 / 详节                                            |
+| -------------------------------- | ---------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------------------- | ---------------------------------------------------- |
+| P1 Narrative Abstraction         | LLM inference                            | 低·可全自动                       | **保留**: 模式与洞察 / **损失**: 步骤与时序(by-design) / **注入**: 跨轨迹综合 insight(源自模型先验)          | 增量(append); dynamic store 有 merge/prune 级联 | 直接阅读判断(主观)                             | Reflexion [Shi23b]；§3.1                              |
+| P2 Schematic Formalization       | LLM inference + 可选 execution 验证          | 中·需可执行环境                     | **保留**: 过程结构 / **损失**: NL nuance/隐含假设(by-design) / **注入**: 显式依赖结构                 | 增量(新 artifact 入库)                          | execution test(客观, coverage-limited)   | Voyager [Wan23c]；§3.2                                |
+| P3 Latent-Space Transformation   | cache: gradient-free / trained: gradient | cache 低·仅 session; trained 中 | **保留**: 计算状态 / **损失**: 符号可读性(by-design) / **注入**: token 未显式编码的统计规律                | cache 即时重建; trained 需 batch 重训             | 无直接验证·仅 ablation 间接                    | LAG [Che25b]（cache）/ ReasonCACHE [Gup26]（trained）；§4 |
+| P4 Evaluator Internalization     | gradient training                        | 高·需标注或明确成败信号                 | **保留**: 评估偏好 / **损失**: 校准来源与单条贡献(mix: by-design + by-limitation)                  | batch 重训; 新标注需重训以保校准                       | 无直接验证·hold-out calibration check       | Let's Verify Step by Step [Lig23]；§5.1               |
+| P5 Policy Internalization        | gradient training (SFT/RL)               | 高·需大规模高质量 trajectory         | **保留**: 决策模式 / **损失**: 单条贡献不可区分(by-design) + 欠拟合/reward hacking 风险(by-limitation) | batch 重训(可热启动); RL 可在线但漂移衰减旧经验             | 仅 behavioral (rollout 间接比较)            | SWE-Gym [Pan24]；§5.2                                 |
+| P6 Evaluator-Driven Optimization | gradient training (RLHF/DPO)             | 高·叠加 P4 成本                   | **保留**: 偏好迁移入 policy / **注入**: trajectory-only 学不到的细粒度偏好 / **损失**: 经 P4+P6 双重压缩   | online/iterative·漂移敏感                      | behavioral·循环验证风险 (Evaluator ⇄ Policy) | Constitutional AI [Bai22b]；§6.1                      |
+| P7 Parametric Externalization    | 从 policy 采样生成                            | 中·依赖采样质量·须先有 trained policy  | **保留**: 权重中的能力经采样部分恢复为 token / **损失**: 采样未覆盖部分 / **注入**: hallucination 风险         | 可增量生成新样本·跟随源模型更新                           | 产物可读但不可追溯权重成分·完备性不可验证                  | Explorer [Pah25]；§6.2                                |
+
 
 **Table 8.1.** Pathway production profiles across five dimensions.
 
@@ -42,13 +44,15 @@
 
 可解释性与控制自由度都是访问粒度的下游读数。可读性随粒度与层次走——Tokenized 因逐条可寻址加离散符号而可读，Parametric 因不可寻址加连续权重而不可读；控制自由度同样系于粒度——逐条可寻址允许在检索、编排、注入各环节调节，不可寻址则不允许。二者作为任务约束的对偶留待 §8.3。
 
-| Carrier | Access Interface | Access Granularity | Utilization Cost（计算位置） | Revisability |
-|---|---|---|---|---|
-| Narrative | context injection（$c_t$） | per-item（精确取单条 reflection/rule） | retrieval latency + context tokens·每次复用均付（GPU prefill + 外部检索） | append/edit/delete·逐条互不影响 |
-| Schematic | context injection（$c_t$）；executable 形态经 external execution 后结果回 $c_t$ | per-item / per-node | context tokens（GPU prefill）；executable 形态叠加 execution compute·卸至外部 executor·通常同步阻塞 | version/replace（executable 需重测） |
-| Latent | forward-pass attention（输入侧·连续向量·不占 token 位） | per-block（整段·粗） | 无独立检索/编码开销·融入 forward pass（GPU）；trained 形态占虚拟 token 位·与 bank 长度成正比·非零 | 不可逐条（session-scoped 自动失效 / trained 重训整个 bank） |
-| Policy | forward-pass weights（$\theta$）→ $a_t$ | indivisible / always-on（全局生效·不可取单条） | 零边际（每单位经验）·仍付完整 forward pass（GPU） | retrain·可能 catastrophic forgetting |
-| Evaluator | forward-pass weights（$\theta$）→ 候选信号 | indivisible / always-on | 零边际（每单位经验）·额外 forward pass·offline 可摊销 / realtime gate 纯增量 | retrain·可能破坏校准 |
+
+| Carrier   | Access Interface                                                      | Access Granularity                  | Utilization Cost（计算位置）                                                             | Revisability                                  |
+| --------- | --------------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------- |
+| Narrative | context injection（$c_t$）                                              | per-item（精确取单条 reflection/rule）     | retrieval latency + context tokens·每次复用均付（GPU prefill + 外部检索）                      | append/edit/delete·逐条互不影响                     |
+| Schematic | context injection（$c_t$）；executable 形态经 external execution 后结果回 $c_t$ | per-item / per-node                 | context tokens（GPU prefill）；executable 形态叠加 execution compute·卸至外部 executor·通常同步阻塞 | version/replace（executable 需重测）               |
+| Latent    | forward-pass attention（输入侧·连续向量·不占 token 位）                           | per-block（整段·粗）                     | 无独立检索/编码开销·融入 forward pass（GPU）；trained 形态占虚拟 token 位·与 bank 长度成正比·非零              | 不可逐条（session-scoped 自动失效 / trained 重训整个 bank） |
+| Policy    | forward-pass weights（$\theta$）→ $a_t$                                 | indivisible / always-on（全局生效·不可取单条） | 零边际（每单位经验）·仍付完整 forward pass（GPU）                                                  | retrain·可能 catastrophic forgetting            |
+| Evaluator | forward-pass weights（$\theta$）→ 候选信号                                  | indivisible / always-on             | 零边际（每单位经验）·额外 forward pass·offline 可摊销 / realtime gate 纯增量                         | retrain·可能破坏校准                                |
+
 
 **Table 8.2.** Carrier utilization profiles across four dimensions.
 
@@ -68,28 +72,32 @@
 
 另两个维度与相邻代价并列，但由载体选择锁死、非任务所能设定：Access Interface 决定 Utilization Cost 表现为何种开销（context token、零边际、额外 forward pass），Mechanism（转化是否更新权重）决定 Construction Cost 的量级（gradient 训练贵、inference 廉）。Information Transformation 进入对偶的只有 traceability；其保真度一支——by-design 损失随存在层次，by-limitation 的 reward hacking、欠拟合与 hallucination——是转化过程的工程结果，任务不对其设阈，不构成载体选择的约束，归 §8.1。
 
-| 约束轴 | 子约束 | 利用侧维度（§8.2） | 生产侧维度（§8.1） |
-|---|---|---|---|
-| Serving Cost | latency / context budget | Utilization Cost、Access Interface | — |
-| Inspectability | readability | Access Granularity | Information Transformation（traceability） |
-| Inspectability | verifiability | — | Output Verifiability |
-| Maintainability | error correction / non-stationarity | Revisability | Incrementality |
-| Build Cost | training resources | — | Construction Cost、Mechanism |
-| Scale（放大轴） | volume / arrival rate | 放大各轴 | 放大各轴 |
+
+| 约束轴            | 子约束                                 | 利用侧维度（§8.2）                       | 生产侧维度（§8.1）                              |
+| -------------- | ----------------------------------- | --------------------------------- | ---------------------------------------- |
+| Serving Cost   | latency / context budget            | Utilization Cost、Access Interface | —                                        |
+| Inspectability | readability                         | Access Granularity                | Information Transformation（traceability） |
+| Inspectability | verifiability                       | —                                 | Output Verifiability                     |
+| Inspectability | error correction / non-stationarity | Revisability                      | Incrementality                           |
+| Build Cost     | training resources                  | —                                 | Construction Cost、Mechanism              |
+| Scale（放大轴）     | volume / arrival rate               | 放大各轴                              | 放大各轴                                     |
+
 
 **Table 8.3.** Constraint axes, their sub-constraints, and the §8.1/§8.2 dimensions each engages.
 
 将每个子约束沿其对偶维度推至五类载体，得方向性压力表（Table 8.4）。`++` 强烈偏向，`+` 偏向，`○` 中性，`−` 不利，`−−` 强烈不利，指载体在该约束下的适配度。各子约束取该量处于约束状态的场景——latency、context budget、training resources 指该资源紧张，余项指其需求为高；Schematic 双值为 executable / non-executable 形态，Latent 双值为 session-scoped / trained 形态，单值表两形态一致，Evaluator 的 realtime / offline 另注。每格为结构性推断。
 
-| 约束轴 | 子约束 | Narrative | Schematic | Latent | Policy | Evaluator |
-|---|---|---|---|---|---|---|
-| Serving Cost | latency | −− | − | +/○ | ++ | −(realtime)/○(offline) |
-| Serving Cost | context budget | −− | ○/− | + | ++ | ○ |
-| Inspectability | readability | ++ | +/++ | − | −− | − |
-| Inspectability | verifiability | ++ | ++ | − | −− | + |
-| Maintainability | error correction | ++ | + | − | −− | −− |
-| Maintainability | non-stationarity | + | −/+ | +/− | −− | −− |
-| Build Cost | training resources | ++ | + | ++/− | −− | −− |
+
+| 约束轴             | 子约束                | Narrative | Schematic | Latent | Policy | Evaluator              |
+| --------------- | ------------------ | --------- | --------- | ------ | ------ | ---------------------- |
+| Serving Cost    | latency            | −−        | −         | +/○    | ++     | −(realtime)/○(offline) |
+| Serving Cost    | context budget     | −−        | ○/−       | +      | ++     | ○                      |
+| Inspectability  | readability        | ++        | +/++      | −      | −−     | −                      |
+| Inspectability  | verifiability      | ++        | ++        | −      | −−     | +                      |
+| Maintainability | error correction   | ++        | +         | −      | −−     | −−                     |
+| Maintainability | non-stationarity   | +         | −/+       | +/−    | −−     | −−                     |
+| Build Cost      | training resources | ++        | +         | ++/−   | −−     | −−                     |
+
 
 **Table 8.4.** Directional pressure from constraint sub-dimensions to carrier classes.
 
@@ -109,12 +117,14 @@
 
 两个强约束各把载体推向存在形态谱的相反两端时，单载体无解——谱上没有同处两端的点（§8.2）。推向 Parametric 端（零边际、与体量解耦）的是 Serving Cost 与 Scale，推向 Tokenized 端（逐条可读、逐条可改）的是 readability 与 Maintainability，两两交叉即 Table 8.5 的四对；Inspectability 只取 readability 入对——其另一半 verifiability 不沿谱排布、由复用机制设定（§8.3.1）。
 
-| 张力对 | 冲突 | 结构性无解之由 |
-|---|---|---|
-| Serving Cost × readability | latency 偏 Policy（快但不可读），readability 偏 Narrative（可读但慢） | 逐条可读须在 Tokenized 端、每次重载，零边际须在 Parametric 端、不可读 |
-| Scale × readability | volume 偏 Policy（可 scale 不可读），readability 偏 Narrative（可读但受 context 上限制约） | volume 增大受 context window 物理上限制约，与逐条可读不可兼得 |
-| Serving Cost × Maintainability | latency 偏 Policy（O(1) 推理），non-stationarity 偏 Narrative（可逐条增改） | 逐条可改须在 Tokenized 端，零边际须在 Parametric 端 |
-| Scale × Maintainability | volume 偏 Policy（训后恒定），error correction 偏 Narrative（逐条独立修正） | volume 大时逐条修正人力不可承受，重训周期又过长 |
+
+| 张力对                            | 冲突                                                                      | 结构性无解之由                                        |
+| ------------------------------ | ----------------------------------------------------------------------- | ---------------------------------------------- |
+| Serving Cost × readability     | latency 偏 Policy（快但不可读），readability 偏 Narrative（可读但慢）                   | 逐条可读须在 Tokenized 端、每次重载，零边际须在 Parametric 端、不可读 |
+| Scale × readability            | volume 偏 Policy（可 scale 不可读），readability 偏 Narrative（可读但受 context 上限制约） | volume 增大受 context window 物理上限制约，与逐条可读不可兼得     |
+| Serving Cost × Maintainability | latency 偏 Policy（O(1) 推理），non-stationarity 偏 Narrative（可逐条增改）           | 逐条可改须在 Tokenized 端，零边际须在 Parametric 端          |
+| Scale × Maintainability        | volume 偏 Policy（训后恒定），error correction 偏 Narrative（逐条独立修正）              | volume 大时逐条修正人力不可承受，重训周期又过长                    |
+
 
 **Table 8.5.** Irreducible tension pairs and their structural origin.
 

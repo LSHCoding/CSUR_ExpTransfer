@@ -1,0 +1,86 @@
+\section{Parametric-Source Transformations}
+
+以 Parametric 载体为源端的转化共两条:Evaluator-Driven Optimization 把固化在评估器参数中的判断能力转入 Policy 参数,Parametric Externalization 把权重中已内化的决策或评估能力外化为可被其他系统消费的 Tokenized artifacts。两条 pathway 的 source 都是其他 pathway 的产物,而非来自原始交互日志的直接监督。
+
+\subsection{Evaluator-Driven Optimization: Evaluator-to-Policy Transformation}
+
+Evaluator-Driven Optimization 把参数化评估器已习得的评价能力经训练转移进 Policy 参数:Policy 作为 actor 产生行为,评估器对这些行为评判,所得判断作为训练信号更新 Policy 权重。本路径的 source 是 Evaluator parameter 而非被评判的 $(c,a,o)$——被评判的行为只是评估器表达判断的对象,真正被转移的经验早在 Evaluator Internalization 阶段就已压缩进评估器权重,Evaluator parameter 既是那一路径的产物,也是本路径的起点。它与 Policy Internalization 的分界在于学习信号的来源:后者把原始轨迹、人类示范或环境成功信号直接写入权重,前者以评估器对 Policy 行为的判断作为信号;判定上要求 Policy 权重确实因评估器信号而更新,仅在 decoding、reranking、best-of-N、tree search 或 MCTS 中受评估器调控而不更新权重的工作不属此路径。
+
+\subsubsection{Discriminative Outcome Evaluator-to-Policy Transfer}
+
+判别式 outcome 评估器对完整输出或完整 trajectory 给出可比较的标量分数或 chosen/rejected 偏好,policy 把这些信号写入参数。按 policy 吸收信号的方式分为三类:Reward Maximization 把标量当 reward 做 RL 最大化,Preference Contrast 让偏好直接驱动对比式优化,Reward-Ranked Selection 用分数筛样本做监督式写入。
+
+\textbf{Reward Maximization.} 评估器的标量分数充当 reward,policy 用 PPO、GRPO、REINFORCE 等 RL 算法将其最大化。Constitutional AI \cite{Bai22b} 的 RL-CAI 阶段由 constitution 引导的 AI judge 对完整回答给偏好,训练出 preference model 后经 RLAIF 让 policy 最大化其分数。RLAIF \cite{Lee23b} 给出 AI 反馈的两种用法:canonical RLAIF 先用 AI 偏好训 RM,d-RLAIF 直接拿 judge 分数当在线 reward。\cite{Ren26b} 进一步免去 ground-truth label:让 LLM judge 回答 meta-question,以 YES 概率合成 scalar reward 再经 GRPO/CISPO 最大化。\cite{Ack26} 与 Policy Filtration \cite{She24c} 都针对 policy 长期优化 imperfect 评估器引发的 reward hacking:前者在 Dr.GRPO 风格目标上加 gradient regularization 与 reference reset,抑制 policy 对 proxy reward 尖锐高点的利用;后者只放 RM 最可靠的高低分样本进 PPO buffer,缓解 noisy RM 的过拟合。FAPO \cite{Din25b}、\cite{Che25v} 与 OS-Themis \cite{Li26p} 的评估器虽具备步级诊断,但压缩为轨迹标量后才进 RL,落在 outcome 一侧(与 §6.1.3 接壤):\cite{Din25b} 把首个无效步骤的定位折成整条 rollout 的 penalty,\cite{Che25v} 用首错定位算出轨迹的部分正确性标量以激活 all-negative group 的梯度,\cite{Li26p} 的在线 RL 主信号则是 trajectory-level reward。
+
+\textbf{Preference Contrast.} 评估器的 chosen/rejected 偏好不蒸馏成独立 reward,直接进入 DPO、IPO、SLiC 等对比式目标更新 policy。OAIF \cite{Guo24} 是 on-policy 实例:在线 LLM annotator 对当前 policy 采样出的回答对给偏好,直接进 DPO/IPO/SLiC,使监督分布始终跟随 policy、避免 RM 随训练 off-distribution。Self-Rewarding Language Models \cite{Yua24} 与 Meta-Rewarding Language Models \cite{Wu24d} 让评估器与 policy 共享同一组参数:前者让同一模型既作 generator 又作 judge,自评分构造 chosen/rejected 对后以 iterative DPO 回灌;后者再加一层 meta-judge 改进 judge 自身评分质量,形成 actor/judge/meta-judge 共演化。\cite{Wu25x} 与 \cite{Fis24} 都提升偏好优化的稳健性:前者用 Bayesian router 按 query 在多个 RM 间动态选路,把路由后的偏好对送入 online DPO;后者在离线设置下把 RM 的 reward difference 经 L2 distillation 与 forward KL 正则蒸馏进 policy 的 implicit reward,提升 label bias、distribution shift 下的稳定性。
+
+\textbf{Reward-Ranked Selection.} 评估器分数只用于筛选高分样本,再以 SFT 写入 policy,以更低算力逼近 RL 的对齐效果。RAFT \cite{Don23} 用 RM 对同一 prompt 的多条回答打分,保留 best-of-K 做 SFT。BOND \cite{Ses24} 把整个 best-of-N 分布(而不仅是高分样本)用 forward/backward KL 蒸馏进单次采样 policy。BoNBoN \cite{Gui24} 离线刻画 best-of-n 分布,以 SFT-BoN 与 IPO-BoN 同时纳入最优与最差样本。\cite{Gon24b} 的 critic LLM 对整条 trajectory 评分,取 top p\% 作为伪示范配合通用数据迭代 SFT。
+
+Xu24d(Mixture of Judges)用 calibrated RM、LLM judge 与规则约束 judge 的混合信号分别实例化 CRPG、CODPO 与 CRRAFT,正好横跨上述三类;其多评估器去偏价值见 §6.1.5。
+
+\subsubsection{Generative Outcome Evaluator-to-Policy Transfer}
+
+生成式 outcome 评估器对完整输出或完整 trajectory 产出 critique、failure explanation 或 revised response 等自然语言内容,并把这些内容(而非标量)作为 policy 的主要监督。
+
+Constitutional AI \cite{Bai22b} 的 SL-CAI 阶段是早期实例:反馈模型按 constitution 对完整回答生成 critique 与 revision,policy 直接对 revision 做 SFT。ECHO \cite{Li26l} 是更近期的完整实例:与 actor 同步更新的 linguistic critic 对完整 rollout 生成 score-aware critique,actor 据此产出 refined rollout,policy 以 GRPO 在 critique 条件下优化这些 refined trajectory,critic 在同批数据上经双轨 GRPO 共演化。生成式反馈的价值天然倾向落到步级——评估器一旦愿意生成细粒度解释,用在 process 粒度比 outcome 粒度信息利用率更高,因此 outcome 形态的生成式评估器多向 §6.1.4 迁移。
+
+\subsubsection{Discriminative Process Evaluator-to-Policy Transfer}
+
+判别式 process 评估器对中间步骤、局部动作、reasoning prefix 或 state-action pair 给出可比较的步级信号,policy 据此更新参数。核心动机是长程 agent 的 credit assignment:仅靠末端 reward,policy 难以辨别该强化或避免哪些局部行为。按步级信号的产生方式分为三类:Step-Value Critic 训练 critic 估计步级 value,Step-Quality Scoring 让评估器直接给每步打质量分,Reward Redistribution 把已有的轨迹级 reward 摊到各步。
+
+\textbf{Step-Value Critic.} 训练一个专门的 critic 估计每步的 value 或 advantage,作为 credit assignment 的 baseline。SWEET-RL \cite{Zho25p} 在 multi-turn 协作推理中训练 turn-level critic,借训练期特权信息直接学每轮 action 的 advantage,再经 DPO 把 turn-wise credit assignment 蒸馏进 actor。\cite{Wan26s} 在 GUI 场景训练 Agentic-Q model 估计 state-action 的 future return,把 step-wise value 接入 SWPO 式更新。
+
+\textbf{Step-Quality Scoring.} 评估器直接对每步或每个维度给出质量分,policy 通过 RL reward、筛选或偏好写入。PPRM \cite{Xu25h} 面向 non-verifiable 的 multi-turn search,用 principle-based PRM 对每轮的 correctness、relevance、coherence 评分,经 ReNorm 与末端 ORM 校准后送入 PPO+GAE。Language Feedback Model \cite{Zho24e} 与 \cite{Pan24b} 都把每步的质量判断转成筛选信号:前者判断每个动作是否 productive、对被标为 desirable 的 state-action 做 behavior cloning;后者用 per-step progress filtering 的结果做 Filtered BC。AdaRubric \cite{Din26e} 与 \cite{Luo25f} 都把质量分构造成偏好:前者先为任务生成 rubric、再对每步每维输出 1–5 分,聚合后做 trajectory-level DPO 与 step-level PPO;后者用 judge 对 computer-use 单步 GUI 动作打 0–100 分,由高低分构造 step-level 偏好对训练 UI-TARS-2B。
+
+\textbf{Reward Redistribution.} 不额外构造步级标签,把已有的轨迹级 reward 摊到 token 或 round 上。\cite{Cha24b} 取标准 RM 最后层 attention 的 token 归因,将终局标量 reward 重分配为 token-level dense reward 送入 PPO。CW-GRPO \cite{Wan26ac} 用 rubric-based judge 对每轮 search 给 retrieval utility 与 reasoning correctness 两个 binary 信号,合成 round-level contribution weight 把 trajectory-level advantage 按轮重分配。
+
+\subsubsection{Generative Process Evaluator-to-Policy Transfer}
+
+生成式 process 评估器对中间步骤产出解释性、诊断性或修正性内容,并把这些内容转进 policy。与判别式 process 回答"这一步好不好"不同,生成式 process 回答"这一步为什么不好、应如何改"。按生成内容的形态分为两类:Step Critique-and-Refine 对每步 critique 并产出 refined step,Failure-Driven Revision 定位错误或给出指令再把修正内化。
+
+\textbf{Step Critique-and-Refine.} 评估器对每步 critique,actor 据此产出 refined step,refined 内容作为对齐目标写入 policy。SRR-Judge \cite{Zha26am} 对 search agent 每个 thought-action step 同时输出 explanation、1–5 rating 与 refined thought/action,rating 负责筛选、refined step 作为生成式对齐目标,经 iterative RFT 写入 policy。Natural Language Actor-Critic \cite{Hon25c} 用 generative language critic 为每个 state-action 产出优劣理由与未来走向的自然语言 critique,actor 在 critique 条件下生成 refined action,再反向蒸馏回基础 policy。
+
+\textbf{Failure-Driven Revision.} 评估器定位错误或给出修正指令,修正后的轨迹或动作经内化写入 policy。Agent-R \cite{Yua25c} 让 actor 自身充当 verifier,在搜索树分叉中定位坏轨迹的 transition point,在错误前缀与正确后续之间插入 revision signal,把"反思加修正"实例做迭代 SFT。OpenClaw-RL \cite{Wan26ad} 从用户话语或环境信号抽取 directive textual hints,用 On-Policy Distillation 把 hint-enhanced teacher 与 student 的 log-prob gap 转成 token-level directional update;其 sequence-level binary RL 旁支不在本格讨论。
+
+\input{sections/Tables/evaluator2policy}
+
+\subsubsection{Discussion}
+
+Evaluator-Driven Optimization 的共性是在经验与 policy 之间插入一个学得的评估器,本路径的能力与局限都由这层中介决定。它让对齐得以规模化——"什么样的输出更好"被离线压进评估器权重后,采样、筛选、对比的边际成本极低,这是 RLHF 工具链横向扩展的前提——并把可训练范围延伸到 rule-based verifier 不及的 non-verifiable 区域:开放对话、长程 search、多维 agentic 行为中环境给不出 clean reward,评估器几乎是把难以量化的偏好转成可优化信号的唯一手段。同一层中介也设下上界,policy 的能力不超过评估器;对一个固定且 imperfect 的评估器持续优化,policy 逼近的是评估器认定的好而非真实目标,reward hacking 因此是本路径的内生风险,在 scalar/critique、outcome/step 各形态下都会复现。
+
+本路径内部沿两条轴展开,各自承载一组张力。粒度轴(outcome / process)决定 credit assignment 的精度:outcome 信号简单,long-horizon credit 却粗糙;process 信号提供 dense supervision,step-label 的可靠性与一致性却更难保证。形态轴(discriminative / generative)决定信息密度与可验证性之间的折中:判别式信号密度低,但可比较、易筛易排;生成式信号密度高,却难以核验,且与 refined trajectory 等 tokenized 载体边界模糊,常令方法在归属上贴近 Policy Internalization 或 Parametric Externalization。这两轴上的演化方向一致——从判别走向生成、从 outcome 走向 process,信息密度随之抬升,而"评估器自身是否可靠"也被推到更前。
+
+评估器的可靠性是本路径的约束核心,也是最大的开放问题。现有缓解各有侧重——co-evolution 让评估器随 policy 更新 \cite{Yua24, Wu24d, Li26l}、ensembling 与 routing 用多评估器分散单点偏差 \cite{Wu25x, Xu24d}、regularization 与 filtration 约束优化过程 \cite{Ack26, She24c}——但都只能压制、无法消除评估器与真实目标之间的缺口;可验证性还呈不对称:判别式信号尚可用 held-out 偏好一致性间接核验,生成式步级 critique 的正确性至今依赖人工或更强模型,而错误的 critique 比错误的 scalar 更具误导性。把本路径放回相邻路径中看,Policy Internalization 的监督直接 grounded 却把噪声一并传入,Evaluator-Driven Optimization 以一层 grounding 换取更稳、更可比的信号,二者在环境信号充足与稀疏时各有所长;评估器本身又是 Evaluator Internalization 的产物,P4 → P6 的串接构成完整的 evaluator-based pipeline,其复合形态与跨路径的系统比较分别留给 §7 与 §8。
+
+\subsection{Parametric Externalization: Parametric-to-Tokenized Transformation}
+
+Parametric Externalization 把已内化在 Policy 或 Evaluator 参数中的经验外化为可被其他系统使用的 Tokenized artifacts。外化产物分两类,对应两端参数的角色:Policy 端产出 agent trajectory(决策行为的完整记录),Evaluator 端产出 evaluative annotation(对行为质量的判断,含 correctness/quality label、自然语言 critique、preference annotation)。与其余路径处理一条已存在的 trajectory 不同,本路径的 artifact 由承载参数的模型现场生成——同一组参数在不同 prompt 与环境下可产出无数条轨迹,转化算子因此是从 $p(e \mid \text{prompt}, \text{env})$ 中采样,而非对某个给定 $e$ 的重编码。
+
+按外化产物来自哪一端参数,本路径分为两类:Demonstration Externalization(§6.2.1)外化 Policy 的决策行为,Evaluative Supervision Externalization(§6.2.2)外化 Evaluator 的判断能力。
+
+\subsubsection{Demonstration Externalization}
+
+Demonstration Externalization 把参数化 Policy 或 teacher agent 的隐式决策能力外化为可供 student 模仿的 agent trajectory,下游以 SFT、behavioral cloning 或 imitation 训练新模型。外化轨迹的真实程度取决于 teacher 生成时所处的环境:teacher 在真实环境中交互时,observation 是环境的客观返回,轨迹 grounding 最强;环境若由模型模拟乃至完全省去,observation 转由模型自身生成,轨迹愈接近一次纯参数读出,pseudo-success 与 hallucinated observation 的风险随之上升,对生成阶段验证的依赖也相应加重。据此分为 Real-Environment Synthesis、Simulated-Environment Synthesis 与 Constructive Synthesis 三类。
+
+\textbf{Real-Environment Synthesis.} Teacher 在真实可交互环境中执行任务,observation 来自环境的客观返回,grounding 最强。web 域的代表是 Explorer \cite{Pah25}:GPT-4o 在真实网页中自主发现任务、执行多步交互,经多阶段 refine 与 verifier 产出带页面状态、动作序列与总结的 multimodal trajectory。沿此扩展,InSTA \cite{Tra25} 推到 internet scale,AutoSurfer \cite{Fai26} 先识别站点功能空间再整理为 task tuple,SynthAgent \cite{Wan25ar} 做 element-level exploration 后全局 refine,A3-SYNTH \cite{Lu26} 以 Agent-as-Annotators 产出带结构化 reasoning 的成功轨迹;\cite{Log26b} 用 judge 抽取 constraints 并按满足率做 prefix extraction 与 hindsight relabeling,使部分成功轨迹也可训练。计算机与移动端,Fara-7B \cite{Awa25} 经 FaraGen 产出 screenshot-thought-action 轨迹并由三重 verifier 筛选,OpenMobile \cite{Che26d} 由 expert 接管修正 learner 偏差、保留 corrected trajectory 与 step-level CoT,AgentSynth \cite{Xie25e} 在 OSWorld 等环境先生成并验证简单 subtask、再合成更长程复合任务并保留完整 action trajectory 与视觉证据。工具与 MCP 域,TOUCAN \cite{Xu25o} 在近 500 个真实 MCP 环境中合成任务并执行完整 tool-use rollout,经 task 级与 trajectory 级双重过滤形成 1.5M 规模 corpus。ANCHOR \cite{Wei26b} 沿少量 high-quality seed trajectory 找 branch point、在分叉状态提新任务并续行,形成共享前缀、后段分叉的树状 GUI 数据。
+
+\textbf{Simulated-Environment Synthesis.} 环境本身由模型扮演,observation 由 simulator 生成。这组在工具调用域最集中:ToolAlpaca \cite{Tan23} 用 ChatGPT 分饰 user、assistant 与 tool executor 模拟生成工具轨迹,ToolMind \cite{Yan25ab} 以三类 agent 模拟产出带 reasoning 的多轮轨迹并做细粒度过滤,ToolACE \cite{Liu24o} 先扩充 API pool 再合成多复杂度的工具调用对话,APIGen-MT \cite{Pra25b} 先定 task blueprint 与 ground-truth action、再经 simulated agent-human interplay 合成多轮 function-calling 对话。mobile GUI 域,Learning with Challenges \cite{Kan26b} 先对 student 做能力 profiling、再用 explorer/supervisor/synthesizer 等 VLM 角色在 emulator 中生成难度自适应的 goal-conditioned trajectory。一组工作把"环境本体"作为主产物:\cite{Wan25as} 把 GPT-4o-mini 同时用作 world simulator 与 teacher、既产 trajectory 又产可扩展的 UI state-transition simulator,Mock Worlds \cite{Lu26j} 从 persona 合成 workflow、虚拟 tool ecosystem 与 rubric,ASTRA \cite{Tia26} 一线产 SFT trajectory、一线把工具实现编译成 sandbox-verifiable RL arena,\cite{Xu26e} 在少量 seed 上 self-evolving 生成后扰动 query 与 tool 构造 RL-ready mock 环境。
+
+\textbf{Constructive Synthesis.} 此端几乎没有交互环境,trajectory 围绕预先给定的 answer、evidence 或问题结构反向构造,最接近一次纯参数读出。EviPath \cite{Li25at} 从 gold evidence 反推 abductive reasoning path 再生成含 planning 与 evidence-grounded answering 的 RAG trajectory,RAGShaper \cite{Tao26} 构造带 distractor 的信息树与多跳问题、在受控检索环境诱导 teacher 产出 agentic RAG trajectory,APIGen \cite{Liu24n} 基于真实可执行 API 生成 query 与 function-calling answer 并经三层检查筛选(保留 execution check,但交互浅、整体偏生成)。
+
+\subsubsection{Evaluative Supervision Externalization}
+
+Evaluative Supervision Externalization 把参数化 Evaluator(judge、verifier、critic、reward model)的隐式评估能力外化为 Tokenized evaluative annotation,用于训练 student、蒸馏轻量 evaluator 或筛选数据。产物按形态分三类:step 或 outcome 层的 correctness/quality label、自然语言 critique 与 failure diagnosis、preference annotation。
+
+\cite{He25g} 先用强 computer-use agent 产出 noisy trajectory,再由 o4-mini 对每步做 correctness 与 optimality grading、附 screenshot/action/alternative 分析,结果被物化为 WebSTAR 与 WebSCORE 两套独立数据,前者训练 student agent,后者蒸馏轻量 StepRM。Step-GUI \cite{Yan25x} 先以轨迹级 verifier 建立质量锚点,再由强多模态 model 把验证结果转写为 progress tracking、state summary、effect prediction 等七类结构化 step-level supervision,与原轨迹一道用于 cold-start fine-tuning 与 RLVR。
+
+\input{sections/Tables/policy2token}
+
+
+\subsubsection{Discussion}
+
+Parametric Externalization 的价值在两个层面。其一是数据生产:它以 teacher 的自动生成替代人工逐条标注,既降低单位成本,又能沿 curriculum、difficulty、domain coverage、failure pattern 等维度定向合成所需经验,数据规模与覆盖面不再受人工吞吐约束。其二是能力转移:昂贵的大 teacher 的隐式能力可被外化、再蒸馏进一组轻量、领域专用的 student,把推理期持续的高成本换成一次性的合成成本。
+
+代价大多从一个根本约束派生:student 在任务能力维度继承的是 teacher 的上界,本路径兑换的是成本、推理效率与领域专用化,而非能力前沿本身。teacher hallucination、伪成功轨迹与不可执行步骤会被 student 当作正确监督吸收,这一风险沿环境合成度轴递增——真实环境一端 verifier 校验任务成功即可,模拟与构造一端还须校验 observation 自身的可信度;distribution narrowing 则放大单一 teacher 的风格与偏好,multi-teacher mixing 可缓解但不能根除。verifier 因此既是本路径的支柱也是最薄弱处:false positive 让伪成功漏入 student、false negative 错杀高质量样本,如何把 evaluation-grade verifier 与生成规模同步扩展,是本路径的开放工程问题。
+
+在经验来源维度,Parametric Externalization 是 \{teacher\}-sourced experience 进入训练语料的主要途径——其余路径处理的多是 agent 自身或人类产生的经验,而 teacher 模型的隐式能力须经本路径外化,才能成为可供其他系统使用的显式经验。

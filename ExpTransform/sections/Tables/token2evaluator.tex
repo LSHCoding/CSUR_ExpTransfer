@@ -1,0 +1,65 @@
+% 所需宏包：booktabs, graphicx
+% \usepackage{booktabs}
+% \usepackage{graphicx}
+
+\begin{table}[htbp]
+\centering
+\caption{Overview of Evaluator Internalization methods.}
+\label{tab:evaluator-internalization}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+\textbf{Work} & \textbf{Supervision Granularity} & \textbf{Output Form} & \textbf{Evaluator Output} & \textbf{Label Source} & \textbf{Training Method} & \textbf{Domain} \\
+\midrule
+% outcome / disc
+Du23                            & outcome & disc & binary label              & environment-outcome                    & cls-CE          & embodied        \\
+I-FailSense~\cite{Gri25}        & outcome & disc & binary label              & ground-truth match                     & cls-CE          & embodied        \\
+WebRL~\cite{Qi24}               & outcome & disc & binary label              & environment-outcome                    & cls-CE          & web             \\
+Wen25b                          & outcome & disc & binary label              & rule-based                             & cls-CE          & web             \\
+RoboReward~\cite{Lee26b}        & outcome & disc & graded score              & environment-outcome                    & regression      & embodied        \\
+SAFE~\cite{Gu25b}               & outcome & disc & graded score              & environment-outcome                    & regression      & embodied        \\
+VLP~\cite{Liu25w}               & outcome & disc & preference                & environment-outcome                    & ranking         & embodied        \\
+\addlinespace[3pt]
+% outcome / gen
+GenRM~\cite{Zha24o}             & outcome & gen  & structured verdict        & ground-truth match                     & gen-CE          & text/reasoning  \\
+S2J~\cite{Sun25l}               & outcome & gen  & structured verdict        & ground-truth match                     & RL-PG           & text/reasoning  \\
+J4R~\cite{Xu25i}                & outcome & gen  & structured verdict        & ground-truth match                     & RL-PG           & text/reasoning  \\
+AgentV-RL~\cite{Zha26ac}        & outcome & gen  & structured verdict        & ground-truth match                     & gen-CE + RL-PG  & text/reasoning  \\
+CriticGPT-RM~\cite{Liu24g}      & outcome & gen  & preference                & environment-outcome$^\dagger$          & gen-CE          & embodied        \\
+AHA~\cite{Dua24}                & outcome & gen  & failure diagnosis         & rule-based                             & gen-CE          & embodied        \\
+ARMOR~\cite{Qi26}               & outcome & gen  & failure diagnosis         & environment-outcome + human            & cls-CE + gen-CE & embodied        \\
+ExeVRM~\cite{Son26d}            & outcome & gen  & failure diagnosis         & environment-outcome                    & gen-CE          & GUI             \\
+CTRL~\cite{Xie25c}              & outcome & gen  & corrective suggestion     & environment-outcome                    & RL-PG           & code            \\
+ECHO~\cite{Li26l}               & outcome & gen  & corrective suggestion     & environment-outcome                    & RL-PG           & text/reasoning  \\
+RL4F~\cite{Aky23}               & outcome & gen  & corrective suggestion     & ground-truth match                     & RL-PG           & text/reasoning  \\
+\midrule
+% process / disc
+Let's Verify~\cite{Lig23}       & process & disc & binary label              & human                                  & cls-CE          & text/reasoning  \\
+OmegaPRM~\cite{Luo24}           & process & disc & binary label (soft)       & MC-rollout                             & cls-CE          & text/reasoning  \\
+PathFinder-PRM~\cite{Pal25}     & process & disc & binary label (error-typed)& human + MC-rollout                     & cls-CE          & text/reasoning  \\
+GUI-Shepherd~\cite{Che25h}      & process & disc & graded score              & human + teacher-model                  & cls-CE          & GUI             \\
+GAIA~\cite{Wan26p}              & process & disc & binary label              & ground-truth match                     & cls-CE          & GUI             \\
+Rewarding Progress~\cite{Set24} & process & disc & progress/advantage        & MC-rollout                             & regression      & text/reasoning  \\
+PQM~\cite{Li24m}                & process & disc & progress/advantage        & MC-rollout                             & ranking         & text/reasoning  \\
+BiRM~\cite{Che25s}              & process & disc & progress/advantage        & MC-rollout                             & cls-CE + regression & text/reasoning \\
+AgentPRM~\cite{Xi25b}           & process & disc & progress/advantage        & MC-rollout (TD/GAE)                    & regression      & web             \\
+ProgRM~\cite{Zha25z}            & process & disc & progress/advantage        & ground-truth match (LCS)               & regression      & GUI             \\
+Agentic-Q~\cite{Wan26s}         & process & disc & progress/advantage        & environment-outcome                    & regression      & GUI             \\
+SWE-Shepherd~\cite{Dih26}       & process & disc & progress/advantage        & rule-based                             & regression      & code            \\
+V-Droid~\cite{Dai25}            & process & disc & preference                & human                                  & ranking         & mobile          \\
+IntentScore~\cite{Che26s}       & process & disc & graded score              & ground-truth match                     & ranking         & GUI             \\
+\addlinespace[3pt]
+% process / gen
+DeepCritic~\cite{Yan25u}        & process & gen  & step critique             & teacher-model + MC-rollout             & gen-CE + RL-PG  & text/reasoning  \\
+AutoMathCritique~\cite{Xi24}    & process & gen  & step critique             & teacher-model + MC-rollout             & gen-CE          & text/reasoning  \\
+StepWiser~\cite{Xio25c}         & process & gen  & structured verdict        & MC-rollout                             & RL-PG           & text/reasoning  \\
+OS-Oracle~\cite{Wu25m}          & process & gen  & structured verdict        & rule-based (error injection)           & RL-PG           & GUI             \\
+WebArbiter~\cite{Zha26ab}       & process & gen  & structured verdict        & ground-truth match + teacher-model     & gen-CE + RL-PG  & web             \\
+Web-Shepherd~\cite{Cha25b}      & process & gen  & structured verdict        & human                                  & gen-CE          & web             \\
+SOLE-R1~\cite{Sch26}            & process & gen  & structured verdict        & environment-outcome                    & gen-CE + RL-PG  & embodied        \\
+PPRM~\cite{Xu25h}               & process & gen  & structured verdict        & environment-outcome                    & gen-CE          & text/reasoning  \\
+GUI-Critic-R1~\cite{Wan25q}     & process & gen  & corrective suggestion     & ground-truth match                     & gen-CE + RL-PG  & GUI             \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}

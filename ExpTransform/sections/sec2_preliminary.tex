@@ -1,0 +1,128 @@
+% \section{Preliminaries}
+% \label{sec:prelim}
+
+% Before entering the discussion of agent experience transformation, this section gives formal definitions of three foundational concepts: agent, agent experience, and experience transformation.
+
+% \subsection{Agent}
+% \label{sec:agent}
+
+% This paper defines an agent as a system that performs sequential decision-making in an environment according to task context. At each decision step $t$, the agent perceives the current context $c_t$, produces an action $a_t$, the environment optionally returns an objective outcome $o_t$, and optionally receives an evaluative signal $f_t$.
+
+% An agent's action $a_t$ can simultaneously span natural language reasoning chains, code generation, tool calls, environmental manipulation, and other modalities.
+
+% An agent executing a task follows the loop:
+
+% \[
+% c_t \xrightarrow{\pi} a_t \xrightarrow{\mathcal{E}} (o_t) \xrightarrow{} (f_t) \xrightarrow{} c_{t+1}.
+% \]
+
+% where $\pi$ denotes the agent's policy, $\mathcal{E}$ denotes the environment, and $(\cdot)$ denotes optional elements. This loop is the production mechanism of experience---each round $(c_t, a_t, o_t, f_t)$ constitutes an atomic experience record, formalized in \S\ref{sec:min_unit}.
+
+% \subsection{Agent Experience}
+% \label{sec:agent_exp}
+
+% \subsubsection{Minimum Semantic Unit}
+% \label{sec:min_unit}
+
+% The minimum semantic record of agent experience is defined as a modality-agnostic four-tuple:
+
+% \[
+% e = (c, a, o, f),
+% \]
+
+% where $c$ and $a$ are required elements, and $o$ and $f$ are optional.
+
+% \paragraph{Trajectory.} A complete task execution produces a temporally ordered sequence of experience records, denoted $\tau = (e_1, e_2, \dots, e_T)$, where $T$ is the trajectory length. A collection of multiple trajectories is denoted $\mathcal{D} = \{\tau^{(i)}\}_{i=1}^N$.
+
+% \subsubsection{Experience Carriers}
+% \label{sec:carriers}
+
+% The minimum semantic unit $e$ describes the semantic layer of experience---it captures what happened. Experience carriers describe the form in which experience exists within the model architecture, and can be classified by degree of explicitness into three categories: Tokenized, Latent, and Parametric.
+
+% \paragraph{Tokenized Carriers ($\mathcal{C}^T$).} Experience carriers that exist explicitly as discrete token sequences at the input side of the model's forward pass. This covers text tokens, visual patch tokens, action tokens, and serialized structural tokens (e.g., serialized graphs or workflows), and is not limited to natural language text. Tokenized carriers are further divided into two subclasses by degree of formalization:
+% \begin{itemize}
+%   \item Narrative Tokenized ($\mathcal{C}^T_N$): Weakly formalized carriers organized by natural language or perceptual order, reused through language understanding or multimodal understanding. Typical forms include raw trajectories, reflections, summaries, and screenshots.
+
+%   \item Schematic Tokenized ($\mathcal{C}^T_S$): Strongly formalized carriers organized by syntactic or topological structure, reused through parsing, execution, or graph traversal. Typical forms include workflows, SOPs, and knowledge graphs.
+% \end{itemize}
+
+% Raw interaction trajectories themselves are a special case of Narrative Tokenized carriers---they are Narrative carriers at zero abstraction (without any refinement), not raw material that exists independently outside the carrier system. Transformations typically take raw as their starting point.
+
+% \paragraph{Latent Carriers ($\mathcal{C}^L$).} Intermediate representations that exist as continuous vectors or hidden states and participate directly in model attention or hidden-state computation. Latent carriers are not equivalent to discrete tokens (they do not occupy context window space as discrete tokens), nor are they fixed in model weights (they do not alter model parameters); they form a bridging layer between the two. Typical forms include KV cache, prefix cache, learnable soft prompts, and continuous memory tokens.
+
+% \paragraph{Parametric Carriers ($\mathcal{C}^P$).} Experience fixed in neural network weight distributions, fully implicit. Parametric carriers are further divided into two subclasses by functional role:
+% \begin{itemize}
+%   \item Policy Parameters ($\mathcal{C}^P_\pi$): The actor weights that generate actions $a$.
+%   \item Evaluator Parameters ($\mathcal{C}^P_\phi$): The judge weights that evaluate $(c, a, o, f)$.
+% \end{itemize}
+
+% \subsection{Experience Transformation}
+% \label{sec:transformation}
+
+% Experience transformation refers to the process of moving experience between different carriers. A mapping
+
+% \[
+% \mathcal{T}: \mathcal{C}_{\text{src}} \rightarrow \mathcal{C}_{\text{tgt}}
+% \]
+
+% constitutes an experience transformation if and only if it jointly satisfies the following two conditions, where $\mathcal{C}_{\text{src}}, \mathcal{C}_{\text{tgt}} \in \{\mathcal{C}^T_N,\, \mathcal{C}^T_S,\, \mathcal{C}^L,\, \mathcal{C}^P_\pi,\, \mathcal{C}^P_\phi\}$:
+
+% \begin{enumerate}
+%   \item Experience Grounding. The source content is traceable to one or more experience records $e = (c, a, o, f)$.
+%   \item Experience Embodiment. The target carrier encodes the semantic content of the source experience, rather than merely undergoing a change in format.
+% \end{enumerate}
+
+\section{Preliminaries}
+\label{sec:prelim}
+
+在讨论智能体经验转化之前，本节首先对一些基础概念进行形式化定义：智能体、智能体经验、经验载体和经验转化。
+
+\subsection{Agent}
+\label{sec:agent}
+
+本文将 Agent 定义为一个根据任务上下文在环境中进行序列决策的系统:每一步依据当前可获得的信息选择一个动作,环境据此更新,新的信息进入下一步。沿用序贯决策 agent 的标准刻画 [Russell and Norvig 2021],将第 $t$ 步的决策写为
+
+$$a_t \sim \pi_\theta(\cdot \mid c_t),$$
+
+其中 $c_t$ 是该步外部可见的上下文(指令、历史交互、检索内容、环境观测),$\theta$ 是 agent 的内部参数,$\pi_\theta$ 为由参数决定的策略。
+
+这条决策规则把决策依据分置于两处:流经 $c_t$ 的外部信息,与固化在 $\theta$ 中的内部能力，Agent 同时使用两者。上下文窗口中显式可见的交互记录(对话历史、检索文档、工具输出),以及训练所得的权重(世界知识、推理模式、任务技能)。同一份经验既可存在于 $c_t$ 一侧(外部、显式),也可存在于 $\theta$ 一侧(内部、隐式)。
+
+\subsection{Agent Experience}
+\label{sec:agent_exp}
+
+Agent 与环境的每一次交互产生一个决策事件,记录为一个模态无关的四元组:
+
+$$e = (c, a, o, f),$$
+
+其中 $c$(Context)为决策前可获得的信息,$a$(Action)为该步输出的动作,$o$(Observation)为环境返回的客观后果,$f$(Feedback)为对 $(c,a,o)$ 或 $(c,a)$ 的评价信号。$c$ 与 $a$ 必需,$o$ 与 $f$ 可选——一步动作未必产生可观测后果,也未必收到评价反馈,缺失不影响记录的完整性。一次完整任务执行产生按时序排列的经验序列,记为轨迹 $\tau = (e_1, \dots, e_T)$;多条轨迹的集合记为 $\mathcal{D} = \{\tau^{(i)}\}_{i=1}^N$。
+
+
+
+
+\subsection{Experience Carriers}
+\label{sec:carriers}
+
+最小语义单元 $e$ 描述经验的语义内容;Experience Carrier 描述经验在模型架构中的存在形式,是刻画转化路径源端与目标端的基础坐标。根据经验在模型架构中的存在层次，经验载体可以划分为三类：Tokenized Carrier、Latent Carrier 和 Parametric Carrier。
+
+\paragraph{Tokenized Carrier（$\mathcal{C}^T$）} 以离散 token 序列显式存在于前向传播的输入端,涵盖 text tokens、visual patch tokens、action tokens、序列化的 graph/code/workflow token 等,不限于自然语言。占用 context window,推理时需完整处理。按形式化程度分两子类:
+\begin{itemize}
+  \item Narrative Tokenized，（$\mathcal{C}^T_N$）：按照自然语言组织的弱形式化载体，通过语言理解或多模态理解实现复用。其典型形式包括原始轨迹、反思、摘要和屏幕截图。
+  \item Schematic Tokenized，（$\mathcal{C}^T_S$）：按照句法结构或拓扑结构组织的强形式化载体，通过解析、执行或图遍历实现复用。其典型形式包括工作流、标准操作流程（SOP）和知识图谱。
+\end{itemize}
+
+Trajectories 是抽象层级最低的 Narrative Tokenized 载体,转化通常以它为起点。
+
+\paragraph{Latent Carrier（$\mathcal{C}^L$）} 以连续向量或隐藏状态形式存在，并直接参与模型注意力计算或隐藏状态计算的中间表征。潜在载体既不等同于离散词元——它们不会以离散词元的形式占用上下文窗口空间，也不固定在模型权重中——它们不会改变模型参数；因此，潜在载体构成了词元化载体与参数化载体之间的桥接层。其典型形式包括 KV 缓存、前缀缓存、可学习软提示和连续记忆词元。
+
+\paragraph{Parametric Carrier（$\mathcal{C}^P$）} 固化在神经网络权重分布中的经验，完全隐式。推理时不占用 context,直接前向输出,修改需再训练。按功能角色分两子类:
+\begin{itemize}
+  \item Policy Parameters （$\mathcal{C}^P_\pi$）：生成动作 $a$ 的 actor 权重，涵盖 LLM agent、VLA、GUI agent 权重等。
+  \item Evaluator Parameters （$\mathcal{C}^P_\phi$）：评估 $(c,a,o,f)$ 的判断器权重,涵盖 reward models、PRM、verifiers、critics、VLM judges等。
+\end{itemize}
+
+\subsection{Experience Transformation}
+\label{sec:transformation}
+
+经验转化指经验被重新表示的过程,记为 $\mathcal{T}: \mathcal{C}_{\text{src}} \rightarrow \mathcal{C}_{\text{tgt}}$。重新表示要求目标表示是从源经验重新编码而来的新形式:抽象层级的提升(trajectories → reflections)、形式化程度的改变(trajectories → code)、存在层次的迁移(tokenized → parametric)。源端与目标端是否同属载体不影响判定，比如Narrative → Narrative 的语义抽象同样产生新的经验表示。
+

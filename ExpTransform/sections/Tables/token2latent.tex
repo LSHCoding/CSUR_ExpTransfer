@@ -1,0 +1,37 @@
+% 所需宏包：booktabs, graphicx
+% \usepackage{booktabs}
+% \usepackage{graphicx}
+
+\begin{table}[htbp]
+\centering
+\caption{Overview of Latent-Space Transformation methods.}
+\label{tab:latent-space-transformation}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+\textbf{Work} & \textbf{Acquisition Mechanism} & \textbf{Latent Encoding} & \textbf{Memory Structure} & \textbf{Retrieval} & \textbf{Fusion} & \textbf{Modality} \\
+\midrule
+% Cache-based
+\cite{Wu22}$^\dagger$  & Cache-based   & KV/hidden states  & single-stream & kNN            & attention-injection & text        \\
+\cite{Che25b}          & Cache-based   & KV/hidden states  & single-stream & similarity     & attention-injection & text        \\
+\cite{Sun26}           & Cache-based   & KV/hidden states  & single-stream & similarity     & additive            & embodied    \\
+\addlinespace[3pt]
+% Prompt-based
+\cite{Li25g}           & Prompt-based  & soft prompt       & single-stream & similarity     & additive            & embodied    \\
+\cite{Gup26}           & Prompt-based  & prefix K/V        & single-stream & always-injected & attention-injection & text       \\
+\cite{Wu25c}           & Prompt-based  & memory token      & single-stream & query-routed   & concatenation       & text        \\
+\addlinespace[3pt]
+% Module-based / single-stream
+\cite{Fu26}            & Module-based  & composed latent   & single-stream & similarity     & concatenation       & text        \\
+\cite{Koo25}           & Module-based  & composed latent   & single-stream & always-injected & concatenation      & embodied    \\
+\cite{Gao26}           & Module-based  & composed latent   & single-stream & gated-admit    & gated-residual      & embodied    \\
+\cite{Guo26}           & Module-based  & SSM latent        & single-stream & query-routed   & SSM-injection       & embodied    \\
+\addlinespace[3pt]
+% Module-based / multi-stream
+\cite{Shi25}           & Module-based  & memory token      & multi-stream  & similarity     & gated-residual      & embodied    \\
+\cite{Lin25d}          & Module-based  & feature volume    & multi-stream  & similarity     & cross-attention     & embodied    \\
+\cite{Yu26d}           & Module-based  & KV/hidden states  & multi-stream  & similarity     & attention-injection & cross-modal \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}

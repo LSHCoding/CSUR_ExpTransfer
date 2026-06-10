@@ -1,0 +1,56 @@
+% 所需宏包：booktabs, graphicx
+% \usepackage{booktabs}
+% \usepackage{graphicx}
+
+\begin{table}[htbp]
+\centering
+\caption{Overview of Evaluator-Driven Optimization methods.}
+\label{tab:evaluator-driven-optimization}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llllll@{}}
+\toprule
+\textbf{Work} & \textbf{Evaluator Granularity} & \textbf{Evaluator Form} & \textbf{Transfer Mechanism} & \textbf{Evaluator Coupling} & \textbf{Domain} \\
+\midrule
+% outcome / discriminative
+% \cite{Bai22b}  & outcome & discriminative  generative & reward-maximization / critique-conditioned-refine    & frozen-separate  & dialogue            \\
+\cite{Lee23b}  & outcome & discriminative              & reward-maximization                                  & frozen-separate  & dialogue            \\
+\cite{Ren26b}  & outcome & discriminative              & reward-maximization                                  & frozen-separate  & text/reasoning      \\
+\cite{Ack26}   & outcome & discriminative              & reward-maximization                                  & frozen-separate  & text/reasoning      \\
+\cite{She24c}  & outcome & discriminative              & reward-maximization                                  & frozen-separate  & code                \\
+\cite{Din25b}  & outcome & discriminative              & reward-maximization                                  & frozen-separate  & text/reasoning      \\
+\cite{Che25v}  & outcome & discriminative              & reward-maximization                                  & frozen-separate  & text/reasoning      \\
+\cite{Li26p}   & outcome & discriminative              & reward-maximization                                  & multi-evaluator  & GUI                 \\
+% \addlinespace[3pt]
+\cite{Guo24}   & outcome & discriminative              & preference-contrast                                  & frozen-separate  & dialogue            \\
+\cite{Yua24}   & outcome & discriminative              & preference-contrast                                  & shared-params    & text/reasoning      \\
+\cite{Wu24d}   & outcome & discriminative              & preference-contrast                                  & shared-params    & text/reasoning      \\
+\cite{Wu25x}   & outcome & discriminative              & preference-contrast                                  & multi-evaluator  & text/reasoning      \\
+\cite{Fis24}   & outcome & discriminative              & preference-contrast                                  & multi-evaluator  & text/reasoning      \\
+% \addlinespace[3pt]
+\cite{Don23}   & outcome & discriminative              & reward-ranked-selection                              & frozen-separate  & dialogue            \\
+\cite{Ses24}   & outcome & discriminative              & reward-ranked-selection                              & frozen-separate  & text/reasoning      \\
+\cite{Gui24}   & outcome & discriminative              & reward-ranked-selection                              & frozen-separate  & text/reasoning      \\
+\cite{Gon24b}  & outcome & discriminative              & reward-ranked-selection                              & frozen-separate  & tool-use            \\
+% \cite{Xu24d}   & outcome & discriminative              & reward-maximization / preference-contrast / reward-ranked-selection & multi-evaluator & dialogue \\
+% \midrule
+% process / discriminative
+\cite{Zho25p}  & process & discriminative              & preference-contrast                                  & frozen-separate  & code                \\
+\cite{Wan26s}  & process & discriminative              & reward-maximization                                  & frozen-separate  & GUI                 \\
+\cite{Xu25h}   & process & discriminative              & reward-maximization                                  & frozen-separate  & search              \\
+\cite{Zho24e}  & process & discriminative              & reward-ranked-selection                              & frozen-separate  & embodied            \\
+\cite{Pan24b}  & process & discriminative              & reward-ranked-selection                              & frozen-separate  & web / mobile        \\
+% \cite{Din26e}  & process & discriminative              & preference-contrast / reward-maximization            & frozen-separate  & web                 \\
+\cite{Luo25f}  & process & discriminative              & preference-contrast                                  & frozen-separate  & GUI                 \\
+\cite{Cha24b}  & process & discriminative              & reward-redistribution                                & frozen-separate  & text/reasoning      \\
+\cite{Wan26ac} & process & discriminative              & reward-redistribution                                & frozen-separate  & search              \\
+% process / generative
+\cite{Zha26am} & process & generative                  & critique-conditioned-refine                          & frozen-separate  & search              \\
+% \cite{Hon25c}  & process & generative                  & critique-conditioned-refine                          & shared-params    & text/reasoning / web / dialogue / tool-use \\
+\cite{Hon25c}  & process & generative                  & critique-conditioned-refine                          & shared-params    & general \\
+\cite{Yua25c}  & process & generative                  & failure-driven-revision                              & shared-params    & web / embodied      \\
+% \cite{Wan26ad} & process & generative                  & failure-driven-revision                              & frozen-separate  & dialogue / GUI / code / tool-use \\
+\cite{Wan26ad} & process & generative                  & failure-driven-revision                              & frozen-separate  & general \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}

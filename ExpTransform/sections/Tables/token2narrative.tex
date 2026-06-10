@@ -1,0 +1,54 @@
+% 所需宏包：booktabs, graphicx
+% \usepackage{booktabs}
+% \usepackage{graphicx}
+
+\begin{table}[htbp]
+\centering
+\caption{Overview of Narrative Abstraction methods.}
+\label{tab:narrative-abstraction}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+\textbf{Work} & \textbf{Store Type} & \textbf{Abstraction Source} & \textbf{Update Mechanism} & \textbf{Artifact Form} & \textbf{Retrieval Mechanism} & \textbf{Domain} \\
+\midrule
+% Static / Single-trajectory
+\cite{Shi23b}  & Static  & Single-trajectory & append-only    & reflection        & always-on prepend    & text$^\dagger$          \\
+\cite{Aza25}   & Static  & Single-trajectory & append-only    & reflection        & keyed lookup         & web                     \\
+\cite{Hua25}   & Static  & Single-trajectory & append-only    & multi-field record& embedding similarity & customer-service        \\
+\cite{Wu26}    & Static  & Single-trajectory & append-only    & procedural pair   & embedding similarity & text                    \\
+\cite{Liu23}   & Static  & Single-trajectory & N/A            & summary           & hierarchical drilldown & embodied              \\
+\cite{Liu25e}  & Static  & Single-trajectory & append-only    & summary           & embedding similarity & web                     \\
+\cite{Che25d}  & Static  & Single-trajectory & append-only    & multi-field record& embedding similarity & code                    \\
+\cite{Wan26ap} & Static  & Single-trajectory & append-only    & multi-field record& embedding similarity & code                    \\
+\addlinespace[3pt]
+% Static / Multi-trajectory
+\cite{Fu24}    & Static  & Multi-trajectory  & append-only    & rule              & keyed lookup         & web$^\dagger$           \\
+\cite{Yan25}   & Static  & Multi-trajectory  & append-only    & insight           & embedding similarity & text$^\dagger$          \\
+\cite{Yan26b}  & Static  & Multi-trajectory  & append-only    & insight           & embedding similarity & web                     \\
+\midrule
+% Dynamic / operation-edit
+\cite{Zha23c}  & Dynamic & Multi-trajectory  & operation-edit & insight           & embedding similarity & text$^\dagger$          \\
+\cite{Ye25b}   & Dynamic & Single-trajectory & operation-edit & rule              & hierarchical drilldown & text                  \\
+\cite{Che24}   & Dynamic & Multi-trajectory  & operation-edit & rule              & always-on prepend    & web$^\dagger$           \\
+\cite{Zha25f}  & Dynamic & Single-trajectory & operation-edit & insight           & always-on prepend    & text$^\dagger$          \\
+\cite{Suz25}   & Dynamic & Single-trajectory & operation-edit & insight           & always-on prepend    & text                    \\
+\addlinespace[3pt]
+% Dynamic / survival-prune
+\cite{Mi26b}   & Dynamic & Single-trajectory & survival-prune & procedural pair   & keyed lookup         & mobile                  \\
+\cite{Hua25e}  & Dynamic & Single-trajectory & survival-prune & reflection        & graph traversal      & web                     \\
+\cite{Cao25}   & Dynamic & Single-trajectory & survival-prune & multi-field record& embedding similarity & code                    \\
+\cite{Su25}    & Dynamic & Multi-trajectory  & survival-prune & multi-field record& embedding similarity & text$^\dagger$          \\
+\addlinespace[3pt]
+% Dynamic / skill-curate
+\cite{Ni26}    & Dynamic & Multi-trajectory  & skill-curate   & skill             & always-on prepend    & text$^\dagger$          \\
+\cite{Yan26}   & Dynamic & Multi-trajectory  & skill-curate   & skill             & embedding similarity & text                    \\
+\cite{Ma26b}   & Dynamic & Multi-trajectory  & skill-curate   & skill             & task-routed          & general$^\dagger$       \\
+\addlinespace[3pt]
+% Dynamic / multi-tier
+\cite{Ma25}    & Dynamic & Single-trajectory & multi-tier     & insight           & embedding similarity & text                    \\
+\cite{Maj23}   & Dynamic & Single-trajectory & multi-tier     & rule              & always-on prepend    & text                    \\
+\cite{Liu25}   & Dynamic & Single-trajectory & multi-tier     & multi-field record& embedding similarity & web                     \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}

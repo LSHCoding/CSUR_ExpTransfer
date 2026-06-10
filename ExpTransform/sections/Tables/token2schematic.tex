@@ -1,0 +1,39 @@
+% 所需宏包：booktabs, graphicx
+% \usepackage{booktabs}
+% \usepackage{graphicx}
+
+\begin{table}[htbp]
+\centering
+\caption{Overview of Schematic Formalization methods.}
+\label{tab:schematic-formalization}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+\textbf{Work} & \textbf{Artifact Category} & \textbf{Artifact Form} & \textbf{Downstream Mechanism} & \textbf{Retrieval Mechanism} & \textbf{Hierarchical Structure} & \textbf{Domain} \\
+\midrule
+% Programmatic Skill
+Voyager~\cite{Wan23c}          & Programmatic Skill      & code skill             & execute                  & embedding similarity    & flat        & Minecraft     \\
+ASI~\cite{Wan25d}              & Programmatic Skill      & code skill             & execute                  & task-routed             & flat        & web           \\
+SkillWeaver~\cite{Zhe25c}      & Programmatic Skill      & code skill             & execute                  & task-routed             & flat        & web           \\
+WebXSkill~\cite{Wan26d}        & Programmatic Skill      & JSON skill             & execute                  & URL pattern matching    & flat        & web           \\
+\addlinespace[3pt]
+% Procedural Workflow
+AWM~\cite{Wan24}               & Procedural Workflow     & workflow trajectory    & parse-and-instantiate    & task-routed             & flat        & web           \\
+WorkflowGen~\cite{Wei26}       & Procedural Workflow     & workflow template      & parse-and-instantiate    & embedding similarity    & multi-level & tool-use      \\
+HMT~\cite{Tan26}               & Procedural Workflow     & hierarchical tree      & parse-and-instantiate    & hierarchical drilldown  & multi-level & web           \\
+MACLA~\cite{For25}             & Procedural Workflow     & workflow template      & parse-and-instantiate    & keyed lookup            & multi-level & cross-domain  \\
+MOBIMEM~\cite{Liu25i}          & Procedural Workflow     & workflow template      & parse-and-instantiate    & task-routed             & multi-level & mobile        \\
+A2Flow~\cite{Zha25c}           & Procedural Workflow     & workflow template      & execute                  & task-routed             & flat        & reasoning-QA  \\
+FlowMind~\cite{Liu26}          & Procedural Workflow     & workflow template      & parse-and-instantiate    & task-routed             & flat        & tool-use      \\
+\addlinespace[3pt]
+% Structured Memory Graph
+AriGraph~\cite{Ano24}          & Structured Memory Graph & knowledge graph        & traverse                 & graph traversal         & flat        & text-game     \\
+A-MEM~\cite{Xu25b}             & Structured Memory Graph & knowledge graph        & traverse                 & embedding similarity    & flat        & dialogue-QA   \\
+G-Memory~\cite{Zha25}          & Structured Memory Graph & knowledge graph        & traverse                 & graph traversal         & multi-level & multi-agent   \\
+MobileGPT~\cite{Lee23}         & Structured Memory Graph & transition graph       & traverse                 & graph traversal         & multi-level & mobile        \\
+Environment Maps~\cite{Fen26}  & Structured Memory Graph & environment map        & traverse                 & graph traversal         & flat        & web           \\
+BrainMem~\cite{Ma26}           & Structured Memory Graph & knowledge graph        & traverse                 & graph traversal         & multi-level & embodied      \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
