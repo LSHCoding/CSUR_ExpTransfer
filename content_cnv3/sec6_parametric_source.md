@@ -42,6 +42,42 @@ Constitutional AI [Bai22b] 的 SL-CAI 阶段是早期实例:反馈模型按 cons
 
 **Failure-Driven Revision.** 评估器定位错误或给出修正指令,修正后的轨迹或动作经内化写入 policy。Agent-R [Yua25c] 让 actor 自身充当 verifier,在搜索树分叉中定位坏轨迹的 transition point,在错误前缀与正确后续之间插入 revision signal,把"反思加修正"实例做迭代 SFT。OpenClaw-RL [Wan26ad] 从用户话语或环境信号抽取 directive textual hints,用 On-Policy Distillation 把 hint-enhanced teacher 与 student 的 log-prob gap 转成 token-level directional update;其 sequence-level binary RL 旁支不在本格讨论。
 
+**Table 6.1.** Overview of Evaluator-Driven Optimization methods.
+
+| Work | Evaluator Granularity | Evaluator Form | Transfer Mechanism | Evaluator Coupling | Domain |
+|------|------|------|------|------|------|
+| [Bai22b] | outcome | discriminative / generative | reward-maximization / critique-conditioned-refine | frozen-separate | dialogue |
+| [Lee23b] | outcome | discriminative | reward-maximization | frozen-separate | dialogue |
+| [Ren26b] | outcome | discriminative | reward-maximization | frozen-separate | text/reasoning |
+| [Ack26] | outcome | discriminative | reward-maximization | frozen-separate | text/reasoning |
+| [She24c] | outcome | discriminative | reward-maximization | frozen-separate | code |
+| [Din25b] | outcome | discriminative | reward-maximization | frozen-separate | text/reasoning |
+| [Che25v] | outcome | discriminative | reward-maximization | frozen-separate | text/reasoning |
+| [Li26p] | outcome | discriminative | reward-maximization | multi-evaluator | GUI |
+| [Guo24] | outcome | discriminative | preference-contrast | frozen-separate | dialogue |
+| [Yua24] | outcome | discriminative | preference-contrast | shared-params | text/reasoning |
+| [Wu24d] | outcome | discriminative | preference-contrast | shared-params | text/reasoning |
+| [Wu25x] | outcome | discriminative | preference-contrast | multi-evaluator | text/reasoning |
+| [Fis24] | outcome | discriminative | preference-contrast | multi-evaluator | text/reasoning |
+| [Don23] | outcome | discriminative | reward-ranked-selection | frozen-separate | dialogue |
+| [Ses24] | outcome | discriminative | reward-ranked-selection | frozen-separate | text/reasoning |
+| [Gui24] | outcome | discriminative | reward-ranked-selection | frozen-separate | text/reasoning |
+| [Gon24b] | outcome | discriminative | reward-ranked-selection | frozen-separate | tool-use |
+| [Xu24d] | outcome | discriminative | reward-maximization / preference-contrast / reward-ranked-selection | multi-evaluator | dialogue |
+| [Zho25p] | process | discriminative | preference-contrast | frozen-separate | code |
+| [Wan26s] | process | discriminative | reward-maximization | frozen-separate | GUI |
+| [Xu25h] | process | discriminative | reward-maximization | frozen-separate | search |
+| [Zho24e] | process | discriminative | reward-ranked-selection | frozen-separate | embodied |
+| [Pan24b] | process | discriminative | reward-ranked-selection | frozen-separate | web / mobile |
+| [Din26e] | process | discriminative | preference-contrast / reward-maximization | frozen-separate | web |
+| [Luo25f] | process | discriminative | preference-contrast | frozen-separate | GUI |
+| [Cha24b] | process | discriminative | reward-redistribution | frozen-separate | text/reasoning |
+| [Wan26ac] | process | discriminative | reward-redistribution | frozen-separate | search |
+| [Zha26am] | process | generative | critique-conditioned-refine | frozen-separate | search |
+| [Hon25c] | process | generative | critique-conditioned-refine | shared-params | text/reasoning / web / dialogue / tool-use |
+| [Yua25c] | process | generative | failure-driven-revision | shared-params | web / embodied |
+| [Wan26ad] | process | generative | failure-driven-revision | frozen-separate | dialogue / GUI / code / tool-use |
+
 ### 6.1.5 Discussion
 
 Evaluator-Driven Optimization 的共性是在经验与 policy 之间插入一个学得的评估器,本路径的能力与局限都由这层中介决定。它让对齐得以规模化——"什么样的输出更好"被离线压进评估器权重后,采样、筛选、对比的边际成本极低,这是 RLHF 工具链横向扩展的前提——并把可训练范围延伸到 rule-based verifier 不及的 non-verifiable 区域:开放对话、长程 search、多维 agentic 行为中环境给不出 clean reward,评估器几乎是把难以量化的偏好转成可优化信号的唯一手段。同一层中介也设下上界,policy 的能力不超过评估器;对一个固定且 imperfect 的评估器持续优化,policy 逼近的是评估器认定的好而非真实目标,reward hacking 因此是本路径的内生风险,在 scalar/critique、outcome/step 各形态下都会复现。
@@ -71,6 +107,39 @@ Demonstration Externalization 把参数化 Policy 或 teacher agent 的隐式决
 Evaluative Supervision Externalization 把参数化 Evaluator(judge、verifier、critic、reward model)的隐式评估能力外化为 Tokenized evaluative annotation,用于训练 student、蒸馏轻量 evaluator 或筛选数据。产物按形态分三类:step 或 outcome 层的 correctness/quality label、自然语言 critique 与 failure diagnosis、preference annotation。
 
 [He25g] 先用强 computer-use agent 产出 noisy trajectory,再由 o4-mini 对每步做 correctness 与 optimality grading、附 screenshot/action/alternative 分析,结果被物化为 WebSTAR 与 WebSCORE 两套独立数据,前者训练 student agent,后者蒸馏轻量 StepRM。Step-GUI [Yan25x] 先以轨迹级 verifier 建立质量锚点,再由强多模态 model 把验证结果转写为 progress tracking、state summary、effect prediction 等七类结构化 step-level supervision,与原轨迹一道用于 cold-start fine-tuning 与 RLVR。
+
+**Table 6.2.** Overview of Parametric Externalization methods.
+
+| Work | Source Parameter | Environment Grounding | Externalized Artifact | Verification Mechanism | Generator–Learner Relation | Downstream Use | Domain |
+|------|------------------|-----------------------|-----------------------|------------------------|----------------------------|----------------|--------|
+| [Pah25] | policy | real-environment | agent trajectory | LLM/VLM-judge | teacher→student (cross-model) | SFT/BC | web |
+| [Tra25] | policy | real-environment | agent trajectory | LLM/VLM-judge | teacher→student (cross-model) | SFT/BC | web |
+| [Tao26] | policy | constructive | agent trajectory | **env-success** | teacher→student (cross-model) | SFT/BC | RAG |
+| [Xu25o] | policy | real-environment | agent trajectory | multi-stage-verifier | teacher→student (cross-model) | SFT/BC | tool-use/MCP |
+| [Li25at] | policy | **constructive** | agent trajectory | none | teacher→student (cross-model) | SFT/BC | RAG |
+| [Wan25ar] | policy | real-environment | agent trajectory | multi-stage-verifier | teacher→student (cross-model) | SFT/BC | web |
+| [Awa25] | policy | real-environment | agent trajectory | multi-stage-verifier | teacher→student (cross-model) | SFT/BC | computer-use |
+| [Yan25ab] | policy | simulated-environment | agent trajectory | multi-stage-verifier | teacher→student (cross-model) | SFT/BC | tool-use/MCP |
+| [Che26d] | policy | real-environment | agent trajectory | env-success | teacher→student (cross-model) | SFT/BC | mobile |
+| [Pra25b] | policy | simulated-environment | agent trajectory | multi-stage-verifier | teacher→student (cross-model) | SFT/BC | tool-use/MCP |
+| [Tan23] | policy | simulated-environment | agent trajectory | **none** | teacher→student (cross-model) | SFT/BC | tool-use/MCP |
+| [Liu24n] | policy | **constructive** | agent trajectory | multi-stage-verifier | teacher→student (cross-model) | SFT/BC | tool-use/MCP |
+| [Liu24o] | policy | **simulated-environment** | agent trajectory | multi-stage-verifier | teacher→student (cross-model) | SFT/BC | tool-use/MCP |
+| [Fai26] | policy | real-environment | agent trajectory | multi-stage-verifier | teacher→student (cross-model) | SFT/BC | web |
+| [He25g] — WebSTAR | policy | real-environment | agent trajectory | multi-stage-verifier | teacher→student (cross-model) | SFT/BC | computer-use |
+| [He25g] — WebSCORE / StepRM | evaluator | annotation-over-trajectory | correctness/quality label | rubric | teacher→student (cross-model) | RM-training | computer-use |
+| [Wei26b] | policy | real-environment | agent trajectory | multi-stage-verifier | teacher→student (cross-model) | SFT/BC | GUI |
+
+<!-- | [Lu26] | policy | real-environment | agent trajectory | LLM/VLM-judge | teacher→student (cross-model) | distillation〔建议 SFT/BC〕 | web | -->
+<!-- | [Wan25as] | policy | simulated-environment | agent trajectory | execution-check〔疑为 none/rule〕 | teacher→student (cross-model) | SFT/BC | GUI | -->
+<!-- | [Log26b] | policy | real-environment | agent trajectory | LLM/VLM-judge | teacher→student (cross-model) | distillation〔建议 SFT/BC〕 | web | -->
+<!-- | [Kan26b] | policy | real-environment〔表格正确,主文分组待改〕 | agent trajectory | LLM/VLM-judge | teacher→student (cross-model) | SFT/BC | mobile | -->
+<!-- | [Xie25e] | policy | **real-environment** | agent trajectory | **LLM/VLM-judge** | teacher→student (cross-model)〔实为 benchmark〕 | SFT/BC〔intended〕 | computer-use | -->
+<!-- | [Tia26] | evaluator〔见说明〕 | **simulated-environment** | environment/simulator | multi-stage-verifier | teacher→student (cross-model) | RLVR | tool-use/MCP |
+| [Lu26j] | evaluator〔见说明〕 | simulated-environment | environment/simulator | rubric | teacher→student (cross-model)〔实为同族〕 | RLVR | tool-use/MCP |
+| [Xu26e] | evaluator〔见说明〕 | **simulated-environment** | environment/simulator | multi-stage-verifier | self/same-family | RLVR | tool-use/MCP |
+| [Yan25x] | policy〔主文归 §6.2.2,见说明〕 | real-environment | agent trajectory | multi-stage-verifier | self/same-family | SFT/BC | GUI | -->
+
 
 ### 6.2.3 Discussion
 

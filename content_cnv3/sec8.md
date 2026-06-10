@@ -62,8 +62,6 @@
 
 载体的可行性由部署约束界定。延迟预算、可解释要求、修正频率、训练资源可得性各为一类载体划出可行边界；这些约束都是 §8.1 生产维度或 §8.2 利用维度的对偶——约束为对应维度设定阈值，载体能否进入决策循环，取决于其取值是否满足。约束相容时逐一剪枝即可定位可行载体；约束冲突时单载体无解，迫使载体在时间或空间上组合。约束还会被误判、随部署漂移，使最优配置成为时间的函数。
 
-### 8.3.1 约束到载体的方向性压力
-
 任务约束沿四个轴展开，§8.1、§8.2 的维度各有归属。多数是维度的对偶——任务为该维度设阈值，载体取值是否过阈决定可行：Serving Cost 对偶 Utilization Cost，Maintainability 对偶 Revisability 与 Incrementality，Build Cost 对偶 Construction Cost。Inspectability 一轴含两个性质不同的子约束：readability 要求逐条可读，对偶 Access Granularity 与 traceability，随载体在谱上的位置走；verifiability 要求使用前可客观验证，对偶 Output Verifiability，由载体的复用机制设定（Schematic 经 execution、Evaluator 经 calibration），与谱上位置无关。两个子约束在 Schematic 与 Evaluator 上反向，须分列。Scale 不单占独立一轴：其 volume 与 arrival rate 只放大其余各轴的压力，arrival rate 的对偶与 non-stationarity 同落 Incrementality。
 
 另两个维度与相邻代价并列，但由载体选择锁死、非任务所能设定：Access Interface 决定 Utilization Cost 表现为何种开销（context token、零边际、额外 forward pass），Mechanism（转化是否更新权重）决定 Construction Cost 的量级（gradient 训练贵、inference 廉）。Information Transformation 进入对偶的只有 traceability；其保真度一支——by-design 损失随存在层次，by-limitation 的 reward hacking、欠拟合与 hallucination——是转化过程的工程结果，任务不对其设阈，不构成载体选择的约束，归 §8.1。
@@ -103,50 +101,3 @@
 
 **Scale。** 经验体量放大其余各轴的压力，本身不构成独立轴，故不单列压力行。放大集中在谱的两端：Narrative 的检索质量随经验库增大而下降 [Fu24]、Latent 整块取用使体量增大后更难定位所需片段，Tokenized 端本就要逐次重载的利用成本被进一步抬高；Policy 推理成本与训练数据体量解耦、训练完成后保持恒定 [Pan24]，Evaluator 的离线评分可随体量摊销，Parametric 端的零边际优势随体量放大。Schematic 居中分形态：executable 各自独立执行、执行成本不随体量变化，但库增大后 skill selection 的召回精度下降，与 non-executable 的图检索 noise 同源——执行可扩、选择不可扩。
 
-各约束的强度须从任务场景读出，而非先验假定。硬约束直接排除不满足的载体——错误不可逆的安全关键场景排除 Policy 与 Latent（产物无法事前验证），监管强制可解释同理，硬实时要求排除 Narrative 与 executable Schematic；剪枝在载体空间上切除不可行区。余下载体由多约束的合力定位：同向约束叠加为 overdetermined 的稳健推荐——低延迟、大体量与低可解释需求三重指向 Policy，单一约束放松仍不改结论；反向约束形成张力、单载体无解、迫使组合（§8.3.2），约束随部署漂移则使配置随时间变化（§8.3.3）。
-
-### 8.3.2 约束张力与载体组合
-
-两个强约束各把载体推向存在形态谱的相反两端时，单载体无解——谱上没有同处两端的点（§8.2）。推向 Parametric 端（零边际、与体量解耦）的是 Serving Cost 与 Scale，推向 Tokenized 端（逐条可读、逐条可改）的是 readability 与 Maintainability，两两交叉即 Table 8.5 的四对；Inspectability 只取 readability 入对——其另一半 verifiability 不沿谱排布、由复用机制设定（§8.3.1）。
-
-| 张力对 | 冲突 | 结构性无解之由 |
-|---|---|---|
-| Serving Cost × readability | latency 偏 Policy（快但不可读），readability 偏 Narrative（可读但慢） | 逐条可读须在 Tokenized 端、每次重载，零边际须在 Parametric 端、不可读 |
-| Scale × readability | volume 偏 Policy（可 scale 不可读），readability 偏 Narrative（可读但受 context 上限制约） | volume 增大受 context window 物理上限制约，与逐条可读不可兼得 |
-| Serving Cost × Maintainability | latency 偏 Policy（O(1) 推理），non-stationarity 偏 Narrative（可逐条增改） | 逐条可改须在 Tokenized 端，零边际须在 Parametric 端 |
-| Scale × Maintainability | volume 偏 Policy（训后恒定），error correction 偏 Narrative（逐条独立修正） | volume 大时逐条修正人力不可承受，重训周期又过长 |
-
-**Table 8.5.** Irreducible tension pairs and their structural origin.
-
-四对张力覆盖部署中最常见的约束冲突，每对都使单载体方案不可行。把拉向两端的约束分配给不同载体、再让它们协同，是唯一出路；分配可在时间或空间上进行——时序迁移对应 §7.2、§7.3，空间并置对应 §7.1，衔接机制的细节属 §7。
-
-**时序分阶段。** 经验沿时间迁移载体——早期停留于 Tokenized 端、晚期结晶到 Parametric 端，Table 8.5 的四对张力由此化解：修正与逐条审查发生在 Tokenized 阶段，摊销与可扩展性来自 Parametric 阶段。前提是两端的需求可在时间上分离、而非须同时满足。Refinement-Mediated Policy Internalization（§7.2）直接对应——经验先以 Narrative 形态积累、逐条可读可修，质量达标后内化进 Policy 获零边际推理（Agent-R [Yua25c] 定位失败轨迹的错误步、修正后以 SFT 内化；Skill-SD [Wan26al] 把 Narrative 阶段抽象的 skill 蒸馏进不依赖 skill 的权重）。Generative Experience Curation（§7.3）的自生成环 Policy → Tokenized → Policy 把这一结构闭合：经验在重新内化前经 Tokenized 中转被验证、筛选、修正，使 Parametric 端的 Policy 也能跟随环境更新。两个 pattern 都落在时序分阶段；若 Tokenized 阶段校验不足，固化进权重的可能是误判的伪规则。
-
-**并行互补。** 两个载体同时参与同一决策、各守一侧，处理无法在时间上分离的冲突。典型是同时要求快速决策与质量把关：Policy 以零边际承担实时决策、满足 Serving Cost，另一载体在其候选输出上施加质量控制。Evaluator–Policy Co-Evolution（§7.1）是此类（UI-Genie [Xia25e] 让 reward model 与 policy 交替更新、高分行为回流为监督；Self-Guide [Wan26aj] 把二者压进同一组参数，verbal self-guidance 既导引推理又充当训练奖励）。Evaluator 补足的是 verifiability 而非 readability——它本身也是 Parametric 权重、不可逐条阅读，故 §7.1 化解的是 Serving Cost 与 verifiability 的冲突，不是 Table 8.5 的 readability 张力；readability 张力若须同时满足，只能并行维护一份可读的 Tokenized 副本供审计，那是两套载体并置，单载体仍无法两端兼得。
-
-载体组合确定后，对每个目标载体回查 §8.1 检验生产路径的可负担性：Narrative 经 P1（低成本、可增量），Schematic 经 P2（需 inference 加 execution verification、要求 interface 相对稳定），Latent 经 P3（cache-based 无训练成本但不跨 session、trained 需训练），Evaluator 经 P4。目标为 Policy 时存在 P5 与 P6 之分——P5 从 trajectory 直训（如 SWE-Gym [Pan24]），P6 经 Evaluator 信号训练（如 Constitutional AI [Bai22b] 的 RL-CAI），后者需先有 Evaluator、却能学到 trajectory-only 无法提供的细粒度偏好，二者代价画像见 §8.1。若目标载体在利用侧完美匹配约束、唯一生产路径却在生产侧代价不可承受，此困境指向 §9。
-
-### 8.3.3 约束的时变与失配
-
-在固定时点上，约束界定可行载体（§8.3.1、§8.3.2）；约束本身则随部署漂移，使一个一度可行的配置滑出可行域，经退化的检索、失效的 skill 或过时的权重传导为更差的 $a_t$。
-
-约束随时间变化有三个常见来源。经验体量单调增长：系统初期经验少，Narrative store 检索精度高、context 开销小（Reflexion [Shi23b] 的 always-on prepend 在经验少时完全可行），P1 充分；积累至百万条后检索质量下降、context 占用升高（ExpeL [Zha23c] 的 insight store 随使用增长面临检索精度与 context 占用的双重压力），需向 Policy 迁移（P5 或 P6）。任务分布漂移——GUI agent 的目标网站改版、工具 API 废弃——使已有 Schematic artifact 与训练好的 Policy 同时 stale（Voyager [Wan23c] 的 code skill 在 Minecraft 版本更新后须重新生成、验证）。安全要求升级——从无监管到强制可审计——使 Policy 从可行变为不可行。
-
-最优载体配置因此是时间的函数。迁移本身是一条有完整生产画像的 pathway，以一次性训练成本换取迁移后更低的稳态利用成本。迁移过早，源载体尚未积累足够且经校验的经验，训出的 Policy 欠拟合、切换后 $a_t$ 质量不升反降；迁移过晚，漂移中的载体持续抬高利用成本、并经退化的检索拖低 $a_t$。迁移时机因此是决策质量与成本的联合优化。在此视角下，§7 的复合路径获得时序读法——Refinement-Mediated Policy Internalization（§7.2）编排的正是经验在不同载体间的停留时间：先在 Narrative 中积累到量且质量达标，再固化进 Policy。
-
-约束漂移留下的失配在文献中已有独立印证。经验体量增长引发的 Narrative 检索退化即 memory bloat，Darwinian Memory [Mi26b] 以 survival-based pruning 直接回应。安全要求升级使 Latent 失效尤其难补救：§7.4 已指出 Latent“缺少让外部模块插入评估或修复的接口，一旦写错便难在闭环里被发现”，这也解释了 Latent 为何几乎不进入 §7 composite 的中间环节。可经迁移修复的失配对应一条有代价但可执行的路径；经验一旦融入权重或连续向量、无法单独提取，则修复无路，每条这样的不可逆失配对应一个 §9 问题。
-
-<!--
-§8.4（The Structural Origin and Generative Power）整章删除。
-理由：§8 定位为 analysis-first，三节各司其职（pathway 生产画像 / carrier 利用画像 / 约束驱动选择）；$a_t \sim \pi_\theta(\cdot\mid c_t)$ 是 §2 已立的共同前提、非 §8 待证的命题，不再设“揭示统一本质”的收束章。separability–amortization 已降为 §8.2 复用代价维度上的一句说明，不再作为全章归约的根。
-原 §8.4 的可复用内容移交 §9（Open Problems and Future Directions），原文备查（§9 复用须重新定位、不直接搬运）：
-
-1. 框架生成性：任一新转化技术可先在 §2 的存在形态结构中定位源端与目标端——这一定位即足以推断其生产机制类型（inference-based 还是 training-based）、信息损失性质（by-design 还是 by-limitation 主导）、利用侧代价结构与访问粒度区间，覆盖尚未出现的形式。（注：此为 §2 分类法或全文 conclusion 的性质。）
-
-2. 否定性预测 / 可证伪：声称“既快又透明”的单载体方案等价于声称存在同处 separable 与 fused 两端的载体，与“可分离与零边际不可兼得”（§8.2）矛盾。若此类系统被报告，要么实际维护了 Tokenized 副本供审计（两套载体），要么“透明”指 probing/attribution 等近似解释而非逐单元可读。发现一个在融合存储下同时具备 per-item 可读性与零边际推理成本的载体，即构成对该命题的反驳。
-
-3. 三个 §9 核心待解问题：
-   (a) separability–amortization 耦合是信息论硬约束还是当前架构的软约束？Sparse feature、可编辑 parametric memory、adapter、retrieval-over-activations 等方向在试探这一边界，但尚未在任何工作中实现 Policy 的逐单元可读与可修正。
-   (b) Evaluator 经选择性消费实现的部分解耦能否推广至生成端？当前 Evaluator 的粒度来自后置于输出分布的调制，生成端无对等后置机制；若能在 Policy 前向传播中引入可控的 activation gating 或 token-level routing，则可能在融合存储下实现选择性调取。
-   (c) 最优配置随时间变化时，何种机制可在线判定迁移时机并自动重排经验在各载体间的分布？§8.3.3 已将迁移形式化为收益–成本问题，但社区尚无系统能自动执行这一判断——需同时监控检索退化速率、训练成本估算与任务分布 drift 检测，是跨越经验管理全链路的元控制问题。（此 open problem 此前仅存于 §8.4，§9 必须接手，否则全文缺失。）
--->
